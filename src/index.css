@@ -3,10 +3,11 @@
 @layer base {
   html {
     @apply antialiased;
-    /* Evita que iOS reescale tipografía al rotar / con teclado */
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
     -webkit-tap-highlight-color: transparent;
+    /* Reduce zoom por gestos en la raíz (hijos con scroll horizontal pueden anular) */
+    touch-action: manipulation;
   }
 
   body {
@@ -17,20 +18,20 @@
   #root {
     @apply min-h-dvh;
     overscroll-behavior-x: none;
+    touch-action: manipulation;
   }
 
   /*
-   * Safari iOS hace zoom al enfocar si font-size del control < 16px.
-   * max(16px, 1rem) mantiene legibilidad sin forzar zoom del sistema.
+   * iOS Safari enfoca inputs con font-size < 16px y hace zoom automático.
+   * #root + !important gana a utilidades tipo text-sm en los controles.
    */
-  @media (pointer: coarse) {
-    input:not([type='checkbox']):not([type='radio']):not([type='range']):not(
-        [type='color']
-      ),
-    textarea,
-    select {
-      font-size: max(16px, 1rem) !important;
-    }
+  #root input:not([type='checkbox']):not([type='radio']):not([type='range']):not(
+      [type='color']
+    ),
+  #root textarea,
+  #root select {
+    font-size: max(16px, 1rem) !important;
+    line-height: 1.4;
   }
 
   button,
