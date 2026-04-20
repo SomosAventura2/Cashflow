@@ -37,11 +37,8 @@ export function Dashboard() {
 
   return (
     <div className="space-y-4">
-      <header className="space-y-1">
+      <header>
         <h1 className="text-2xl font-semibold text-white">CashFlow USDT</h1>
-        <p className="text-sm text-zinc-500">
-          Ganancia, caja estimada por movimientos, por cobrar y pendientes
-        </p>
       </header>
 
       {error ? (
@@ -73,28 +70,28 @@ export function Dashboard() {
             </Card>
           </div>
 
-          <Card title="Caja (por movimientos)" className="p-3 sm:p-4">
-            <div className="grid grid-cols-3 gap-2 sm:gap-4">
-              <div className="min-w-0 text-center">
-                <p className="text-[10px] font-medium uppercase tracking-wide text-zinc-500">USD</p>
-                <p className="mt-1 truncate text-xs font-semibold tabular-nums text-sky-300 sm:text-lg">
+          <div>
+            <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-zinc-500">
+              Caja (por movimientos)
+            </h3>
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
+              <Card title="USD" className="min-w-0 p-2 sm:p-3">
+                <p className="truncate text-xs font-semibold tabular-nums text-sky-300 sm:text-lg">
                   {formatMoney(d?.cajaUsd ?? 0, 'USD')}
                 </p>
-              </div>
-              <div className="min-w-0 text-center">
-                <p className="text-[10px] font-medium uppercase tracking-wide text-zinc-500">USDT</p>
-                <p className="mt-1 truncate text-xs font-semibold tabular-nums text-sky-300 sm:text-lg">
+              </Card>
+              <Card title="USDT" className="min-w-0 p-2 sm:p-3">
+                <p className="truncate text-xs font-semibold tabular-nums text-sky-300 sm:text-lg">
                   {formatMoney(d?.cajaUsdt ?? 0, 'USDT')}
                 </p>
-              </div>
-              <div className="min-w-0 text-center">
-                <p className="text-[10px] font-medium uppercase tracking-wide text-zinc-500">Total</p>
-                <p className="mt-1 truncate text-xs font-semibold tabular-nums text-sky-200 sm:text-lg">
+              </Card>
+              <Card title="Total" className="min-w-0 p-2 sm:p-3">
+                <p className="truncate text-xs font-semibold tabular-nums text-sky-200 sm:text-lg">
                   {formatNumber(d?.cajaUsdUsdtNominal ?? 0)}
                 </p>
-              </div>
+              </Card>
             </div>
-          </Card>
+          </div>
 
           <div className="grid grid-cols-2 gap-2 sm:gap-3">
             <Card title="Por cobrar (&gt; 0)" className="min-w-0 p-3 sm:p-4">
