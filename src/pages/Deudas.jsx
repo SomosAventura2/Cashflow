@@ -143,7 +143,6 @@ export function Deudas() {
     <div className="space-y-4">
       <header>
         <h1 className="text-2xl font-semibold text-white">Deudas</h1>
-        <p className="text-sm text-zinc-500">Cuentas por cobrar / pagar y abonos a caja</p>
       </header>
 
       {error ? (
@@ -182,10 +181,7 @@ export function Deudas() {
         </button>
       </div>
 
-      <CollapseCard
-        title={`Agregar ${kind === 'cobrar' ? 'cuenta por cobrar' : 'cuenta por pagar'} (manual)`}
-        subtitle="Sin operación: queda en libros hasta abonos."
-      >
+      <CollapseCard title={`Agregar ${kind === 'cobrar' ? 'cuenta por cobrar' : 'cuenta por pagar'} (manual)`}>
         <form className="grid gap-3 sm:grid-cols-2" onSubmit={submitManualDeuda}>
           <div className="sm:col-span-2">
             <label className="mb-1 block text-xs text-zinc-500">Cliente</label>
@@ -252,10 +248,6 @@ export function Deudas() {
           Resumen listado visible
         </div>
         <div className="mt-1 text-3xl font-bold text-zinc-100">{formatNumber(totalVisible)}</div>
-        <div className="mt-2 text-sm text-zinc-400">
-          Vista: {kind === 'cobrar' ? 'cuentas por cobrar' : 'cuentas por pagar'} (suma nominal de
-          saldos filtrados)
-        </div>
       </div>
 
       <Card>

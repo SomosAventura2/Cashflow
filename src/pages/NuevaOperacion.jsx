@@ -292,7 +292,6 @@ export function NuevaOperacion() {
     }
   }
 
-  const pendienteOParcial = form.estado === 'pendiente' || form.estado === 'parcial'
   const esIntermediacion = form.modo_operacion === 'intermediacion'
   const puedeGuardar = Boolean(form.cliente_id) && clientes.length > 0
 
@@ -300,9 +299,6 @@ export function NuevaOperacion() {
     <div className="space-y-6 pb-4">
       <header>
         <h1 className="text-2xl font-semibold text-white">Nueva operación</h1>
-        <p className="mt-1 text-sm text-zinc-500">
-          Cálculo en vivo, guardado en Supabase, caja automática y refresco del inicio al guardar.
-        </p>
       </header>
 
       <section className="flex flex-col gap-6 lg:flex-row lg:items-start">
@@ -329,11 +325,6 @@ export function NuevaOperacion() {
               <p className="mt-2 text-xs text-zinc-500">
                 En intermediación no se generan cuentas por cobrar/pagar automáticas: el principal no
                 pasa por tu caja.
-              </p>
-            ) : pendienteOParcial ? (
-              <p className="mt-2 text-xs text-zinc-500">
-                Con estado pendiente o parcial se registrará la deuda en cuentas por cobrar (venta) o
-                por pagar (compra).
               </p>
             ) : null}
             {!loadingClientes && clientes.length === 0 ? (

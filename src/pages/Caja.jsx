@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Card } from '../components/Card'
 import { CollapseCard } from '../components/CollapseCard.jsx'
 import { HistorialCajaList } from '../components/HistorialCajaList.jsx'
 import { Input } from '../components/Input'
@@ -51,13 +50,9 @@ export function Caja() {
     <div className="space-y-6 pb-4">
       <header>
         <h1 className="text-2xl font-semibold text-white">Caja</h1>
-        <p className="text-sm text-zinc-500">
-          Ajustes manuales y debajo el historial de operaciones y movimientos de caja con saldos USD/USDT
-          tras cada evento.
-        </p>
       </header>
 
-      <CollapseCard title="Ajuste manual" subtitle="Capital, gastos, retiros u otros movimientos sin operación.">
+      <CollapseCard title="Ajuste manual">
         <form className="space-y-3" onSubmit={onSubmitManual}>
           <div>
             <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-zinc-500">

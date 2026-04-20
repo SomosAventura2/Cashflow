@@ -64,12 +64,9 @@ export function Clientes() {
     <div className="space-y-6 pb-4">
       <header>
         <h1 className="text-2xl font-semibold text-white">Clientes</h1>
-        <p className="mt-1 text-sm text-zinc-500">
-          Alta y listado. El nombre completo se guarda en Supabase para usarlo en operaciones y deudas.
-        </p>
       </header>
 
-      <CollapseCard title="Nuevo cliente" subtitle="Alta rápida para operaciones y deudas.">
+      <CollapseCard title="Nuevo cliente">
         <form className="space-y-4" onSubmit={onSubmit}>
           <div className="grid gap-3 sm:grid-cols-2">
             <Input

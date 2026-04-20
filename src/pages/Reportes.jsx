@@ -35,9 +35,6 @@ export function Reportes() {
       <header className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <h1 className="text-2xl font-semibold text-white">Reportes</h1>
-          <p className="text-sm text-zinc-500">
-            Cierres semanales y estadísticas de clientes y operaciones (datos históricos).
-          </p>
         </div>
         <button
           type="button"
@@ -64,17 +61,9 @@ export function Reportes() {
           <div className="grid gap-3 sm:grid-cols-2">
             <Card title="Operaciones (total cargado)">
               <p className="text-3xl font-bold text-zinc-100">{formatNumber(d.totalOperaciones)}</p>
-              <p className="mt-2 text-xs text-zinc-500">
-                Incluye todas las filas de <span className="text-zinc-400">operaciones</span> (paginación
-                interna).
-              </p>
             </Card>
             <Card title="Ganancia acumulada (suma)">
               <p className="text-3xl font-bold text-emerald-400">{formatNumber(d.gananciaTotal)}</p>
-              <p className="mt-2 text-xs text-zinc-500">
-                Suma del campo <span className="text-zinc-400">ganancia</span> (mezcla modos; referencia
-                contable).
-              </p>
             </Card>
           </div>
 
