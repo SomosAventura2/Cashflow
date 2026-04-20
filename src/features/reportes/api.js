@@ -85,7 +85,7 @@ async function fetchAllOperacionesReporte() {
 }
 
 function buildFromRows(rows, timeframe = REPORTE_PERIODO.semanal) {
-  /** @type {Map<string, { periodKey: string, periodStart: Date|null, etiqueta: string, count: number, ganancia: number, ventas: number, compras: number }>} */
+  /** @type {Map<string, { periodKey: string, periodStart: Date|null, etiqueta: string, count: number, ganancia: number, ventas: number, compras: number, volumenUsd: number }>} */
   const porPeriodo = new Map()
   /** @type {Map<string, { cliente_id: string, nombre: string, ops: number, ganancia: number }>} */
   const porCliente = new Map()
@@ -124,6 +124,7 @@ function buildFromRows(rows, timeframe = REPORTE_PERIODO.semanal) {
           ganancia: 0,
           ventas: 0,
           compras: 0,
+          volumenUsd: 0,
         })
       }
       const w = porPeriodo.get(key)
@@ -131,6 +132,10 @@ function buildFromRows(rows, timeframe = REPORTE_PERIODO.semanal) {
       w.ganancia += g
       if (tipo === 'venta') w.ventas += 1
       else if (tipo === 'compra') w.compras += 1
+      const me = String(r.moneda_entrada ?? '').toUpperCase()
+      const ms = String(r.moneda_salida ?? '').toUpperCase()
+      if (me === 'USD') w.volumenUsd += Number(r.monto_entrada) || 0
+      if (ms === 'USD') w.volumenUsd += Number(r.monto_salida) || 0
     }
 
     const cid = r.cliente_id

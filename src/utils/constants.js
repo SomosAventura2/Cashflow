@@ -14,8 +14,9 @@ export const ESTADOS_OPERACION = ['pendiente', 'cerrada']
 /** Listados: filas antiguas con estado `parcial` se muestran como pendiente. */
 export function etiquetaEstadoOperacion(estado) {
   const e = String(estado ?? '').toLowerCase()
-  if (e === 'parcial') return 'pendiente'
-  return e || '—'
+  const norm = e === 'parcial' ? 'pendiente' : e
+  if (!norm) return '—'
+  return norm.charAt(0).toUpperCase() + norm.slice(1)
 }
 
 export const TIPOS_OPERACION = ['compra', 'venta']

@@ -11,6 +11,43 @@ const cellNum = 'text-right font-medium text-zinc-100 tabular-nums'
 const toggleBtn =
   'rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors sm:px-3 sm:text-sm'
 
+function GraficoVolumenUsd({ periodos }) {
+  const serie = useMemo(() => [...periodos].reverse(), [periodos])
+  const w = 340
+  const h = 112
+  const padX = 10
+  const padY = 10
+  if (serie.length === 0) {
+    return <p className="text-sm text-zinc-500">Sin datos para graficar.</p>
+  }
+  const vals = serie.map((p) => Number(p.volumenUsd) || 0)
+  const maxV = Math.max(...vals, 1)
+  const n = serie.length
+  const coords = vals.map((v, i) => {
+    const x = n === 1 ? padX + (w - padX * 2) / 2 : padX + (i / (n - 1)) * (w - padX * 2)
+    const y = padY + (1 - v / maxV) * (h - padY * 2)
+    return { x, y }
+  })
+  const pts = coords.map((p) => `${p.x},${p.y}`).join(' ')
+  return (
+    <svg
+      viewBox={`0 0 ${w} ${h}`}
+      className="h-28 w-full text-sky-400"
+      preserveAspectRatio="none"
+      aria-hidden
+    >
+      <polyline
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        points={pts}
+      />
+    </svg>
+  )
+}
+
 function tituloCierres(timeframe) {
   switch (timeframe) {
     case REPORTE_PERIODO.quincenal:
@@ -58,7 +95,10 @@ export function Reportes() {
   }, [])
 
   useEffect(() => {
-    load()
+    const id = requestAnimationFrame(() => {
+      load()
+    })
+    return () => cancelAnimationFrame(id)
   }, [load, dashboardNonce])
 
   const d = useMemo(() => {
@@ -73,18 +113,8 @@ export function Reportes() {
 
   return (
     <div className="space-y-4 pb-2">
-      <header className="flex flex-wrap items-start justify-between gap-2">
-        <div>
-          <h1 className="text-2xl font-semibold text-white">Reportes</h1>
-        </div>
-        <button
-          type="button"
-          onClick={() => load()}
-          disabled={loading}
-          className="rounded-xl border border-zinc-700 px-3 py-2 text-xs font-medium text-zinc-300 hover:bg-zinc-900 disabled:opacity-50"
-        >
-          Actualizar
-        </button>
+      <header>
+        <h1 className="text-2xl font-semibold text-white">Reportes</h1>
       </header>
 
       {error ? (
@@ -99,11 +129,11 @@ export function Reportes() {
         </div>
       ) : d ? (
         <>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Card title="Operaciones (total cargado)">
+          <div className="grid grid-cols-1 gap-3">
+            <Card title="Operaciones totales">
               <p className="text-3xl font-bold text-zinc-100">{formatNumber(d.totalOperaciones)}</p>
             </Card>
-            <Card title="Ganancia acumulada (suma)">
+            <Card title="Ganancia acumulada">
               <p className="text-3xl font-bold text-emerald-400">{formatNumber(d.gananciaTotal)}</p>
             </Card>
           </div>
@@ -214,7 +244,12 @@ export function Reportes() {
             {d.periodos.length === 0 ? (
               <p className="text-sm text-zinc-500">Aún no hay operaciones para agrupar.</p>
             ) : (
-              <div className="overflow-x-auto">
+              <>
+                <div className="mb-4 rounded-xl border border-zinc-800/80 bg-zinc-950/40 px-3 py-3">
+                  <div className={labelClass}>Volumen en USD por periodo</div>
+                  <GraficoVolumenUsd periodos={d.periodos} />
+                </div>
+                <div className="overflow-x-auto">
                 <table className="w-full min-w-[320px] text-left text-sm">
                   <thead>
                     <tr className="border-b border-zinc-800 text-xs text-zinc-500">
@@ -239,7 +274,8 @@ export function Reportes() {
                     ))}
                   </tbody>
                 </table>
-              </div>
+                </div>
+              </>
             )}
           </Card>
 
@@ -257,7 +293,7 @@ export function Reportes() {
                       <span className="min-w-0 flex-1">
                         <span className="text-xs text-zinc-500">{i + 1}. </span>
                         <span className="font-medium text-zinc-200">{c.nombre}</span>
-                        <span className="ml-2 text-xs text-zinc-500">({formatNumber(c.ops)} ops)</span>
+                        <span className="ml-2 text-xs text-zinc-500">{formatNumber(c.ops)} ops</span>
                       </span>
                       <span className="shrink-0 font-semibold text-emerald-400 tabular-nums">
                         {formatNumber(c.ganancia)}

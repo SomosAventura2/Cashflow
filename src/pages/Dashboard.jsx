@@ -38,7 +38,7 @@ export function Dashboard() {
   return (
     <div className="space-y-4">
       <header>
-        <h1 className="text-2xl font-semibold text-white">CashFlow USDT</h1>
+        <h1 className="text-2xl font-semibold text-white">Cashflow</h1>
       </header>
 
       {error ? (
@@ -63,7 +63,7 @@ export function Dashboard() {
                 </p>
               )}
             </Card>
-            <Card title="Ganancia (últ. 8 ops)" className="min-w-0 p-3 sm:p-4">
+            <Card title="Ganancia últ. 8 ops" className="min-w-0 p-3 sm:p-4">
               <p className="text-lg font-semibold leading-tight text-zinc-100 sm:text-2xl">
                 {formatMoney(d?.totGananciaUltimas ?? 0, 'USD')}
               </p>
@@ -94,7 +94,7 @@ export function Dashboard() {
           </div>
 
           <div className="grid grid-cols-2 gap-2 sm:gap-3">
-            <Card title="Por cobrar (&gt; 0)" className="min-w-0 p-3 sm:p-4">
+            <Card title="Por cobrar" className="min-w-0 p-3 sm:p-4">
               {d?.errorCobrar ? (
                 <p className="text-xs text-amber-400">{d.errorCobrar}</p>
               ) : (

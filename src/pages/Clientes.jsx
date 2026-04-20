@@ -3,7 +3,6 @@ import { Card } from '../components/Card'
 import { CollapseCard } from '../components/CollapseCard.jsx'
 import { Input } from '../components/Input'
 import { createCliente, fetchClientes } from '../features/operaciones/api.js'
-import { etiquetaCliente } from '../utils/clienteLabel.js'
 
 const emptyForm = {
   nombre: '',
@@ -115,12 +114,19 @@ export function Clientes() {
           <p className="text-sm text-zinc-500">Aún no hay clientes. Crea el primero arriba.</p>
         ) : (
           <ul className="divide-y divide-zinc-800 text-sm">
-            {list.map((c) => (
-              <li key={c.id} className="flex flex-col gap-0.5 py-3 first:pt-0">
-                <span className="font-medium text-zinc-100">{etiquetaCliente(c)}</span>
-                {c.telefono ? <span className="text-xs text-zinc-500">{c.telefono}</span> : null}
-              </li>
-            ))}
+            {list.map((c) => {
+              const nombre = String(c.nombre ?? '').trim()
+              const alias = String(c.alias ?? '').trim()
+              return (
+                <li key={c.id} className="flex flex-col gap-0.5 py-3 first:pt-0">
+                  <span className="text-sm text-zinc-500">
+                    {nombre}
+                    {alias ? ` ${alias}` : ''}
+                  </span>
+                  {c.telefono ? <span className="text-xs text-zinc-500">{c.telefono}</span> : null}
+                </li>
+              )
+            })}
           </ul>
         )}
       </Card>

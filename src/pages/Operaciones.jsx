@@ -4,7 +4,12 @@ import { fetchOperaciones } from '../features/operaciones/api.js'
 import { Card } from '../components/Card'
 import { formatMoney, formatDateTime } from '../utils/format'
 import { etiquetaCliente } from '../utils/clienteLabel.js'
-import { ROUTES, TIPOS_OPERACION, ESTADOS_OPERACION, etiquetaEstadoOperacion } from '../utils/constants'
+import {
+  ROUTES,
+  TIPOS_OPERACION,
+  ESTADOS_OPERACION,
+  etiquetaEstadoOperacion,
+} from '../utils/constants'
 import { useAppStore } from '../store/useAppStore'
 
 const inputClass =
@@ -93,7 +98,7 @@ export function Operaciones() {
               <option value="todos">Todos</option>
               {ESTADOS_OPERACION.map((s) => (
                 <option key={s} value={s}>
-                  {s}
+                  {etiquetaEstadoOperacion(s)}
                 </option>
               ))}
             </select>

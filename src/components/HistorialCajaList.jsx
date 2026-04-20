@@ -62,29 +62,27 @@ export function HistorialCajaList({ cardTitle = null, showRefresh = false }) {
               return (
                 <li key={`op-${r.id}`} className="flex flex-col gap-1 py-3">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <span className="font-medium text-sky-300">Operación</span>
+                    <span className="flex flex-wrap items-center gap-2 font-medium capitalize text-zinc-200">
+                      {r.tipo}
+                      {r.modo_operacion === 'intermediacion' ? (
+                        <span className="rounded-full border border-sky-500/40 bg-sky-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-sky-300">
+                          Intermediación
+                        </span>
+                      ) : null}
+                    </span>
                     <span className="text-xs text-zinc-500">{formatDateTime(line.created_at)}</span>
                   </div>
-                  <div className="text-xs text-zinc-400">
-                    <span className="capitalize text-zinc-200">{r.tipo}</span>
-                    {r.modo_operacion === 'intermediacion' ? (
-                      <span className="ml-2 rounded border border-sky-600/40 px-1.5 py-0.5 text-[10px] uppercase text-sky-400">
-                        Intermediación
-                      </span>
-                    ) : null}
-                    {' · '}
-                    {nombre}
-                  </div>
-                  <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-zinc-500">
+                  <div className="text-xs text-zinc-500">Cliente: {nombre}</div>
+                  <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-zinc-400">
                     <span>
-                      Entrada {r.moneda_entrada}: {formatNumber(r.monto_entrada, 2)}
+                      {r.moneda_entrada}: {formatMoney(r.monto_entrada, r.moneda_entrada)}
                     </span>
                     <span>
-                      Salida {r.moneda_salida}: {formatNumber(r.monto_salida, 2)}
+                      {r.moneda_salida}: {formatMoney(r.monto_salida, r.moneda_salida)}
                     </span>
                   </div>
-                  <div className="flex flex-wrap justify-between gap-2 text-xs">
-                    <span className="text-zinc-500">Estado: {etiquetaEstadoOperacion(r.estado)}</span>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-zinc-500">{etiquetaEstadoOperacion(r.estado)}</span>
                     <span className="text-emerald-400">
                       Ganancia{' '}
                       {formatMoney(
@@ -120,43 +118,47 @@ export function HistorialCajaList({ cardTitle = null, showRefresh = false }) {
                   ? 'text-amber-300'
                   : 'text-emerald-300'
 
+            const tipoMovLabel =
+              m.tipo === 'egreso' ? 'Egreso' : m.tipo === 'ajuste' ? 'Ajuste' : 'Ingreso'
+
             return (
-              <li
-                key={`caja-${m.id}`}
-                className="flex flex-col gap-1 py-3 sm:flex-row sm:items-start sm:justify-between sm:gap-3"
-              >
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-medium text-zinc-200">Caja</span>
-                      <span className="capitalize text-zinc-400">{m.tipo}</span>
-                      <span className="text-zinc-500">{m.moneda}</span>
-                      {esManual ? (
-                        <span className="rounded-full border border-zinc-600 px-2 py-0.5 text-[10px] font-medium uppercase text-zinc-400">
-                          Manual
-                        </span>
-                      ) : null}
-                    </div>
-                    <span className="shrink-0 text-xs text-zinc-500">{formatDateTime(line.created_at)}</span>
-                  </div>
-                  {m.nota ? <p className="mt-1 text-xs text-zinc-500">{m.nota}</p> : null}
-                  {!esManual && nombreOp ? (
-                    <p className="mt-0.5 text-xs text-zinc-600">Cliente: {nombreOp}</p>
-                  ) : null}
-                  <div className="mt-1 rounded-lg border border-zinc-800/80 bg-zinc-950/60 px-2 py-1.5 text-[11px] text-zinc-400">
-                    Saldo:{' '}
-                    <span className="font-medium text-zinc-200">
-                      {formatNumber(line.saldoUsd, 2)} USD
-                    </span>
-                    {' · '}
-                    <span className="font-medium text-zinc-200">
-                      {formatNumber(line.saldoUsdt, 2)} USDT
-                    </span>
-                  </div>
+              <li key={`caja-${m.id}`} className="flex flex-col gap-1 py-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="flex flex-wrap items-center gap-2 font-medium text-zinc-200">
+                    Caja
+                    {esManual ? (
+                      <span className="rounded-full border border-zinc-600 px-2 py-0.5 text-[10px] font-medium uppercase text-zinc-400">
+                        Manual
+                      </span>
+                    ) : null}
+                  </span>
+                  <span className="text-xs text-zinc-500">{formatDateTime(line.created_at)}</span>
                 </div>
-                <span className={`shrink-0 font-medium tabular-nums ${colorClass}`}>
-                  {formatNumber(m.monto, 2)}
-                </span>
+                {!esManual && nombreOp ? (
+                  <div className="text-xs text-zinc-500">Cliente: {nombreOp}</div>
+                ) : null}
+                {m.nota ? <p className="text-xs text-zinc-500">{m.nota}</p> : null}
+                <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-zinc-400">
+                  <span>
+                    {m.moneda}: {formatMoney(m.monto, m.moneda)}
+                  </span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-zinc-500">{tipoMovLabel}</span>
+                  <span className={`font-medium tabular-nums ${colorClass}`}>
+                    {formatMoney(m.monto, m.moneda)}
+                  </span>
+                </div>
+                <div className="mt-1 rounded-lg border border-zinc-800/80 bg-zinc-950/60 px-2 py-1.5 text-[11px] text-zinc-400">
+                  Saldo:{' '}
+                  <span className="font-medium text-zinc-200">
+                    {formatNumber(line.saldoUsd, 2)} USD
+                  </span>
+                  {' · '}
+                  <span className="font-medium text-zinc-200">
+                    {formatNumber(line.saldoUsdt, 2)} USDT
+                  </span>
+                </div>
               </li>
             )
           })}

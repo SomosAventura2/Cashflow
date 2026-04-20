@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { crearOperacion, fetchClientes } from '../features/operaciones/api.js'
 import {
@@ -15,6 +15,7 @@ import {
   MODOS_OPERACION,
   MONEDAS_COMISION,
   MONEDAS_CAMBIO,
+  etiquetaEstadoOperacion,
 } from '../utils/constants'
 import { formatNumber } from '../utils/format.js'
 import { etiquetaCliente } from '../utils/clienteLabel.js'
@@ -32,7 +33,6 @@ const defaultForm = {
   comision_pct: '5',
   comision_fija: '0',
   estado: 'pendiente',
-  observacion: '',
   /**
    * Par USD↔USDT sin comisión fija: `entrada` calcula salida; `salida` calcula entrada; `manual` ambos editables.
    * Al guardar se mapea a `cambio_auto_fijo_salida` (solo true en modo `salida`).
@@ -52,6 +52,13 @@ export function NuevaOperacion() {
   const navigate = useNavigate()
   const bumpDashboard = useAppStore((s) => s.bumpDashboard)
   const [form, setForm] = useState(defaultForm)
+
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0)
+    document.documentElement.scrollTop = 0
+    document.body.scrollTop = 0
+    document.querySelector('main')?.scrollTo?.(0, 0)
+  }, [])
   const [clientes, setClientes] = useState([])
   const [loadingClientes, setLoadingClientes] = useState(true)
   const [error, setError] = useState(null)
@@ -279,7 +286,7 @@ export function NuevaOperacion() {
         comision_pct: esManualPar ? 0 : form.comision_pct === '' ? 0 : Number(form.comision_pct),
         comision_fija: esManualPar ? 0 : form.comision_fija === '' ? 0 : Number(form.comision_fija),
         estado: form.estado,
-        observacion: form.observacion,
+        observacion: null,
         cambio_auto_fijo_salida: form.cambioAutoParUsdUsdt === 'salida',
         par_montos_manual: esManualPar,
       })
@@ -430,9 +437,7 @@ export function NuevaOperacion() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className={labelClass}>
-                Monto entrada {parCalcSalida ? '(calculado)' : ''}
-              </label>
+              <label className={labelClass}>Entrada</label>
               <input
                 className={`${inputClass} ${parCalcSalida ? 'cursor-not-allowed opacity-90' : ''}`}
                 type="number"
@@ -452,9 +457,7 @@ export function NuevaOperacion() {
               />
             </div>
             <div>
-              <label className={labelClass}>
-                Monto salida {parCalcEntrada ? '(calculado)' : ''}
-              </label>
+              <label className={labelClass}>Salida</label>
               <input
                 className={`${inputClass} ${parCalcEntrada ? 'cursor-not-allowed opacity-90' : ''}`}
                 type="number"
@@ -572,20 +575,10 @@ export function NuevaOperacion() {
             >
               {ESTADOS_OPERACION.map((s) => (
                 <option key={s} value={s}>
-                  {s}
+                  {etiquetaEstadoOperacion(s)}
                 </option>
               ))}
             </select>
-          </div>
-
-          <div>
-            <label className={labelClass}>Observación</label>
-            <textarea
-              className={`${inputClass} min-h-[96px] resize-none`}
-              value={form.observacion}
-              onChange={(e) => updateField('observacion', e.target.value)}
-              placeholder="Cliente frecuente, tasa especial…"
-            />
           </div>
 
           {error ? (
@@ -623,33 +616,7 @@ export function NuevaOperacion() {
               </div>
               <div className="col-span-2">
                 <div className="text-zinc-500">
-                  {parMontosManual
-                    ? 'Comisión explícita (modo manual)'
-                    : 'Comisión neta (sobre el lado principal del tipo)'}
-                </div>
-                <div className="mt-1 font-semibold text-zinc-200">
-                  {parMontosManual ? '—' : formatNumber(preview.comisionNeta)}
-                </div>
-              </div>
-              {!esIntermediacion ? (
-                <>
-                  <div>
-                    <div className="text-zinc-500">Costo real</div>
-                    <div className="mt-1 font-semibold text-zinc-100">
-                      {formatNumber(preview.costoReal)}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-zinc-500">Ingreso real</div>
-                    <div className="mt-1 font-semibold text-zinc-100">
-                      {formatNumber(preview.ingresoReal)}
-                    </div>
-                  </div>
-                </>
-              ) : null}
-              <div className="col-span-2">
-                <div className="text-zinc-500">
-                  {esIntermediacion ? 'Lo que entra a tu caja (solo comisión)' : 'Ganancia (MVP)'}
+                  {esIntermediacion ? 'Lo que entra a tu caja (solo comisión)' : 'Ganancia'}
                 </div>
                 <div className="mt-1 text-lg font-semibold text-emerald-400">
                   {formatNumber(preview.ganancia)}

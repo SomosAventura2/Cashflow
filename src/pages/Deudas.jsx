@@ -95,11 +95,7 @@ export function Deudas() {
         monto_total: manualMonto,
         moneda: manualMoneda,
       })
-      setMessage(
-        kind === 'cobrar'
-          ? 'Cuenta por cobrar registrada (manual).'
-          : 'Cuenta por pagar registrada (manual).',
-      )
+      setMessage(kind === 'cobrar' ? 'Cuenta por cobrar registrada.' : 'Cuenta por pagar registrada.')
       setManualMonto('')
       setManualClienteId('')
       bumpDashboard()
@@ -182,7 +178,7 @@ export function Deudas() {
         </button>
       </div>
 
-      <CollapseCard title={`Agregar ${kind === 'cobrar' ? 'cuenta por cobrar' : 'cuenta por pagar'} (manual)`}>
+      <CollapseCard title={`Agregar ${kind === 'cobrar' ? 'cuenta por cobrar' : 'cuenta por pagar'}`}>
         <form className="grid gap-3 sm:grid-cols-2" onSubmit={submitManualDeuda}>
           <div className="sm:col-span-2">
             <label className="mb-1 block text-xs text-zinc-500">Cliente</label>
