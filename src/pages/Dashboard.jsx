@@ -56,61 +56,63 @@ export function Dashboard() {
         </div>
       ) : (
         <>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Card title="Ganancia hoy">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
+            <Card title="Ganancia hoy" className="min-w-0 p-3 sm:p-4">
               {d?.errorDia ? (
                 <p className="text-xs text-amber-400">{d.errorDia}</p>
               ) : (
-                <p className="text-2xl font-semibold text-emerald-400">
+                <p className="text-lg font-semibold leading-tight text-emerald-400 sm:text-2xl">
                   {formatMoney(d?.gananciaDia ?? 0, 'USD')}
                 </p>
               )}
             </Card>
-            <Card title="Ganancia (últimas 8 ops)">
-              <p className="text-2xl font-semibold text-zinc-100">
+            <Card title="Ganancia (últ. 8 ops)" className="min-w-0 p-3 sm:p-4">
+              <p className="text-lg font-semibold leading-tight text-zinc-100 sm:text-2xl">
                 {formatMoney(d?.totGananciaUltimas ?? 0, 'USD')}
               </p>
             </Card>
           </div>
 
-          <div>
-            <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-zinc-500">
-              Caja (por movimientos)
-            </h3>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              <Card title="USD">
-                <p className="text-xl font-semibold text-sky-300">
+          <Card title="Caja (por movimientos)" className="p-3 sm:p-4">
+            <div className="grid grid-cols-3 gap-2 sm:gap-4">
+              <div className="min-w-0 text-center">
+                <p className="text-[10px] font-medium uppercase tracking-wide text-zinc-500">USD</p>
+                <p className="mt-1 truncate text-xs font-semibold tabular-nums text-sky-300 sm:text-lg">
                   {formatMoney(d?.cajaUsd ?? 0, 'USD')}
                 </p>
-              </Card>
-              <Card title="USDT">
-                <p className="text-xl font-semibold text-sky-300">
+              </div>
+              <div className="min-w-0 text-center">
+                <p className="text-[10px] font-medium uppercase tracking-wide text-zinc-500">USDT</p>
+                <p className="mt-1 truncate text-xs font-semibold tabular-nums text-sky-300 sm:text-lg">
                   {formatMoney(d?.cajaUsdt ?? 0, 'USDT')}
                 </p>
-              </Card>
-              <Card title="Total caja (USD + USDT)">
-                <p className="text-xl font-semibold text-sky-200">
+              </div>
+              <div className="min-w-0 text-center">
+                <p className="text-[10px] font-medium uppercase tracking-wide text-zinc-500">Total</p>
+                <p className="mt-1 truncate text-xs font-semibold tabular-nums text-sky-200 sm:text-lg">
                   {formatNumber(d?.cajaUsdUsdtNominal ?? 0)}
                 </p>
-              </Card>
+              </div>
             </div>
-          </div>
+          </Card>
 
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Card title="Total por cobrar (saldo &gt; 0)">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
+            <Card title="Por cobrar (&gt; 0)" className="min-w-0 p-3 sm:p-4">
               {d?.errorCobrar ? (
                 <p className="text-xs text-amber-400">{d.errorCobrar}</p>
               ) : (
-                <p className="text-2xl font-semibold text-amber-300">
+                <p className="text-xl font-semibold leading-tight text-amber-300 sm:text-2xl">
                   {formatNumber(d?.totalPorCobrar ?? 0)}
                 </p>
               )}
             </Card>
-            <Card title="Operaciones pendientes">
+            <Card title="Ops pendientes" className="min-w-0 p-3 sm:p-4">
               {d?.errorOpsPend ? (
                 <p className="text-xs text-amber-400">{d.errorOpsPend}</p>
               ) : (
-                <p className="text-4xl font-bold text-zinc-100">{d?.opsPendientes ?? 0}</p>
+                <p className="text-3xl font-bold leading-none text-zinc-100 sm:text-4xl">
+                  {d?.opsPendientes ?? 0}
+                </p>
               )}
             </Card>
           </div>
