@@ -11,6 +11,7 @@ export function AppShell() {
   // puedes activar esta redirección.
   const isLoginRoute = pathname === ROUTES.login
   const shouldProtect = false
+  const isOperar = pathname === ROUTES.operar
 
   if (shouldProtect && !session && !isLoginRoute) {
     return <Navigate to={ROUTES.login} replace />
@@ -18,7 +19,11 @@ export function AppShell() {
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <main className="mx-auto w-full max-w-lg flex-1 px-4 pt-4 pb-32 lg:max-w-5xl lg:px-8 xl:max-w-6xl">
+      <main
+        className={`mx-auto w-full flex-1 px-4 pt-4 pb-32 ${
+          isOperar ? 'max-w-lg lg:max-w-5xl lg:px-8 xl:max-w-6xl' : 'max-w-lg'
+        }`}
+      >
         <Outlet />
       </main>
 
