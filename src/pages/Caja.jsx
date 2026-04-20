@@ -63,8 +63,8 @@ export function Caja() {
               value={manual.tipo_movimiento}
               onChange={(e) => updateManual('tipo_movimiento', e.target.value)}
             >
-              <option value="ingreso">Ingreso (entra dinero a caja)</option>
-              <option value="egreso">Egreso (sale dinero de caja)</option>
+              <option value="ingreso">Ingreso</option>
+              <option value="egreso">Egreso</option>
             </select>
           </div>
           <div className="grid grid-cols-2 gap-3">

@@ -7,8 +7,6 @@ import { createCliente, fetchClientes } from '../features/operaciones/api.js'
 const emptyForm = {
   nombre: '',
   apellido: '',
-  telefono: '',
-  alias: '',
 }
 
 export function Clientes() {
@@ -48,8 +46,8 @@ export function Clientes() {
       await createCliente({
         nombre: form.nombre,
         apellido: form.apellido,
-        telefono: form.telefono,
-        alias: form.alias,
+        telefono: '',
+        alias: '',
       })
       setForm(emptyForm)
       await load()
@@ -86,22 +84,6 @@ export function Clientes() {
               className="gap-1.5"
             />
           </div>
-          <Input
-            label="Teléfono (opcional)"
-            name="telefono"
-            type="tel"
-            value={form.telefono}
-            onChange={(e) => updateField('telefono', e.target.value)}
-            autoComplete="tel"
-            className="gap-1.5"
-          />
-          <Input
-            label="Alias / apodo (opcional)"
-            name="alias"
-            value={form.alias}
-            onChange={(e) => updateField('alias', e.target.value)}
-            className="gap-1.5"
-          />
           {error ? (
             <div className="rounded-2xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-300">
               {error}

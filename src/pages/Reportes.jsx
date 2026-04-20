@@ -153,7 +153,7 @@ export function Reportes() {
             </div>
           </Card>
 
-          <Card title="Cierres semanales (agrupado por semana calendario, lunes a domingo)">
+          <Card title="Cierres semanales">
             {d.semanas.length === 0 ? (
               <p className="text-sm text-zinc-500">Aún no hay operaciones para agrupar.</p>
             ) : (
@@ -187,7 +187,7 @@ export function Reportes() {
           </Card>
 
           <div className="grid gap-3 lg:grid-cols-2">
-            <Card title="Top clientes por ganancia (acumulado)">
+            <Card title="Top clientes por ganancia">
               {d.topClientesGanancia.length === 0 ? (
                 <p className="text-sm text-zinc-500">Sin operaciones con cliente asignado.</p>
               ) : (
@@ -210,7 +210,7 @@ export function Reportes() {
                 </ol>
               )}
             </Card>
-            <Card title="Top clientes por volumen (# operaciones)">
+            <Card title="Top clientes por volumen">
               {d.topClientesOps.length === 0 ? (
                 <p className="text-sm text-zinc-500">Sin operaciones con cliente asignado.</p>
               ) : (

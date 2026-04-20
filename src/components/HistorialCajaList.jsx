@@ -94,7 +94,7 @@ export function HistorialCajaList({ cardTitle = null, showRefresh = false }) {
                     </span>
                   </div>
                   <div className="mt-1 rounded-lg border border-zinc-800/80 bg-zinc-950/60 px-2 py-1.5 text-[11px] text-zinc-400">
-                    Saldo caja tras este evento:{' '}
+                    Saldo:{' '}
                     <span className="font-medium text-zinc-200">
                       {formatNumber(line.saldoUsd, 2)} USD
                     </span>
@@ -142,7 +142,7 @@ export function HistorialCajaList({ cardTitle = null, showRefresh = false }) {
                     <p className="mt-0.5 text-xs text-zinc-600">Cliente (operación): {nombreOp}</p>
                   ) : null}
                   <div className="mt-1 rounded-lg border border-zinc-800/80 bg-zinc-950/60 px-2 py-1.5 text-[11px] text-zinc-400">
-                    Saldo caja tras este evento:{' '}
+                    Saldo:{' '}
                     <span className="font-medium text-zinc-200">
                       {formatNumber(line.saldoUsd, 2)} USD
                     </span>

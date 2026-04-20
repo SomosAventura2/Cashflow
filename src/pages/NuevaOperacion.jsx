@@ -473,12 +473,6 @@ export function NuevaOperacion() {
               />
             </div>
           </div>
-          {parMontosManual ? (
-            <p className="text-xs text-zinc-500">
-              Modo manual: ambos montos a tu criterio. Comisión explícita desactivada; la ganancia se infiere
-              del spread (USD) usando la tasa USDT por USD.
-            </p>
-          ) : null}
 
           {((form.tipo === 'venta' &&
             form.moneda_entrada === 'USD' &&
@@ -493,58 +487,57 @@ export function NuevaOperacion() {
             </p>
           ) : null}
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className={labelClass}>Comisión %</label>
-              <input
-                className={`${inputClass} ${parMontosManual ? 'cursor-not-allowed opacity-50' : ''}`}
-                type="number"
-                inputMode="decimal"
-                enterKeyHint="done"
-                min="0"
-                step="any"
-                value={parMontosManual ? '' : form.comision_pct}
-                onChange={(e) => updateField('comision_pct', e.target.value)}
-                placeholder="0"
-                disabled={parMontosManual}
-                readOnly={parMontosManual}
-              />
+          {!parMontosManual ? (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={labelClass}>Comisión %</label>
+                <input
+                  className={inputClass}
+                  type="number"
+                  inputMode="decimal"
+                  enterKeyHint="done"
+                  min="0"
+                  step="any"
+                  value={form.comision_pct}
+                  onChange={(e) => updateField('comision_pct', e.target.value)}
+                  placeholder="0"
+                />
+              </div>
+              <div>
+                <label className={labelClass}>Comisión fija</label>
+                <input
+                  className={inputClass}
+                  type="number"
+                  inputMode="decimal"
+                  enterKeyHint="done"
+                  min="0"
+                  step="any"
+                  value={form.comision_fija}
+                  onChange={(e) => updateField('comision_fija', e.target.value)}
+                  placeholder="0"
+                />
+              </div>
             </div>
-            <div>
-              <label className={labelClass}>Comisión fija</label>
-              <input
-                className={`${inputClass} ${parMontosManual ? 'cursor-not-allowed opacity-50' : ''}`}
-                type="number"
-                inputMode="decimal"
-                enterKeyHint="done"
-                min="0"
-                step="any"
-                value={parMontosManual ? '' : form.comision_fija}
-                onChange={(e) => updateField('comision_fija', e.target.value)}
-                placeholder="0"
-                disabled={parMontosManual}
-                readOnly={parMontosManual}
-              />
-            </div>
-          </div>
+          ) : null}
 
           <div className="flex flex-wrap items-center gap-2">
-            {[
-              { label: '0%', value: '0' },
-              { label: '1%', value: '1' },
-              { label: '4%', value: '4' },
-              { label: '5%', value: '5' },
-            ].map((shortcut) => (
-              <button
-                key={shortcut.label}
-                type="button"
-                disabled={parMontosManual}
-                onClick={() => updateField('comision_pct', shortcut.value)}
-                className="rounded-2xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-300 hover:border-zinc-600 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                {shortcut.label}
-              </button>
-            ))}
+            {!parMontosManual
+              ? [
+                  { label: '0%', value: '0' },
+                  { label: '1%', value: '1' },
+                  { label: '4%', value: '4' },
+                  { label: '5%', value: '5' },
+                ].map((shortcut) => (
+                  <button
+                    key={shortcut.label}
+                    type="button"
+                    onClick={() => updateField('comision_pct', shortcut.value)}
+                    className="rounded-2xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-300 hover:border-zinc-600"
+                  >
+                    {shortcut.label}
+                  </button>
+                ))
+              : null}
             <button
               type="button"
               disabled={!autoCambioUsdUsdt}
