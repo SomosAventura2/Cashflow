@@ -76,10 +76,10 @@ export function HistorialCajaList({ cardTitle = null, showRefresh = false }) {
                   </div>
                   <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-zinc-500">
                     <span>
-                      Entrada {r.moneda_entrada}: {formatMoney(r.monto_entrada, r.moneda_entrada)}
+                      Entrada {r.moneda_entrada}: {formatNumber(r.monto_entrada, 2)}
                     </span>
                     <span>
-                      Salida {r.moneda_salida}: {formatMoney(r.monto_salida, r.moneda_salida)}
+                      Salida {r.moneda_salida}: {formatNumber(r.monto_salida, 2)}
                     </span>
                   </div>
                   <div className="flex flex-wrap justify-between gap-2 text-xs">
@@ -140,7 +140,7 @@ export function HistorialCajaList({ cardTitle = null, showRefresh = false }) {
                   </div>
                   {m.nota ? <p className="mt-1 text-xs text-zinc-500">{m.nota}</p> : null}
                   {!esManual && nombreOp ? (
-                    <p className="mt-0.5 text-xs text-zinc-600">Cliente (operación): {nombreOp}</p>
+                    <p className="mt-0.5 text-xs text-zinc-600">Cliente: {nombreOp}</p>
                   ) : null}
                   <div className="mt-1 rounded-lg border border-zinc-800/80 bg-zinc-950/60 px-2 py-1.5 text-[11px] text-zinc-400">
                     Saldo:{' '}
@@ -154,7 +154,7 @@ export function HistorialCajaList({ cardTitle = null, showRefresh = false }) {
                   </div>
                 </div>
                 <span className={`shrink-0 font-medium tabular-nums ${colorClass}`}>
-                  {formatMoney(m.monto, m.moneda)}
+                  {formatNumber(m.monto, 2)}
                 </span>
               </li>
             )
