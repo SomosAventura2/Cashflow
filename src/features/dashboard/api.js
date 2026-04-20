@@ -61,6 +61,7 @@ export async function fetchDashboard() {
       opsPend,
       movs,
       cobrarRes,
+      pagarRes,
     ] = await Promise.all([
       supabase
         .from('operaciones')
@@ -73,7 +74,8 @@ export async function fetchDashboard() {
         .select('id', { count: 'exact', head: true })
         .in('estado', ['pendiente', 'parcial']),
       fetchAllMovimientosCaja(),
-      supabase.from('cuentas_por_cobrar').select('saldo').gt('saldo', 0),
+      supabase.from('cuentas_por_cobrar').select('cliente_id, saldo').gt('saldo', 0),
+      supabase.from('cuentas_por_pagar').select('saldo').gt('saldo', 0),
     ])
 
     if (opsUltimas.error) return { error: opsUltimas.error.message, data: null }
@@ -91,9 +93,30 @@ export async function fetchDashboard() {
     /** Suma numérica USD + USDT (referencia 1:1; no es tipo de cambio de mercado). */
     const cajaUsdUsdtNominal = cajaUsd + cajaUsdt
 
+    const filasCxc = cobrarRes.error ? [] : (cobrarRes.data ?? [])
     const totalPorCobrar = cobrarRes.error
       ? null
-      : (cobrarRes.data ?? []).reduce((a, r) => a + Number(r.saldo ?? 0), 0)
+      : filasCxc.reduce((a, r) => a + Number(r.saldo ?? 0), 0)
+
+    const clientesConSaldoPorCobrar = new Set(
+      filasCxc.map((r) => r.cliente_id).filter((id) => id != null && String(id).trim() !== ''),
+    ).size
+
+    const sumaOpsYClientesCxc =
+      cobrarRes.error || opsPend.error
+        ? null
+        : (opsPendientes ?? 0) + clientesConSaldoPorCobrar
+
+    const totalPorPagar = pagarRes.error
+      ? null
+      : (pagarRes.data ?? []).reduce((a, r) => a + Number(r.saldo ?? 0), 0)
+
+    const errorBalanceBruto =
+      cobrarRes.error?.message ?? pagarRes.error?.message ?? null
+    const balanceGeneralBruto =
+      errorBalanceBruto != null
+        ? null
+        : cajaUsdUsdtNominal + (totalPorCobrar ?? 0) - (totalPorPagar ?? 0)
 
     return {
       error: null,
@@ -106,8 +129,13 @@ export async function fetchDashboard() {
         cajaUsdt,
         cajaUsdUsdtNominal,
         totalPorCobrar,
+        totalPorPagar,
         errorCobrar: cobrarRes.error?.message ?? null,
+        balanceGeneralBruto,
+        errorBalanceBruto,
         opsPendientes,
+        clientesConSaldoPorCobrar,
+        sumaOpsYClientesCxc,
         errorOpsPend: opsPend.error?.message ?? null,
       },
     }

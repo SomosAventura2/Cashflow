@@ -96,17 +96,26 @@ export function Dashboard() {
               {d?.errorCobrar ? (
                 <p className="text-xs text-amber-400">{d.errorCobrar}</p>
               ) : (
-                <p className="text-xl font-semibold leading-tight text-amber-300 sm:text-2xl">
-                  {formatNumber(d?.totalPorCobrar ?? 0)}
-                </p>
+                <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1">
+                  <span className="text-xl font-semibold tabular-nums leading-tight text-amber-300 sm:text-2xl">
+                    {formatNumber(d?.totalPorCobrar ?? 0)}
+                  </span>
+                  {d?.sumaOpsYClientesCxc == null ? (
+                    <span className="text-lg text-zinc-500">/ —</span>
+                  ) : (
+                    <span className="text-2xl font-semibold leading-tight text-white sm:text-3xl">
+                      / {d.sumaOpsYClientesCxc}
+                    </span>
+                  )}
+                </div>
               )}
             </Card>
-            <Card title="Ops pendientes" className="min-w-0 p-3 sm:p-4">
-              {d?.errorOpsPend ? (
-                <p className="text-xs text-amber-400">{d.errorOpsPend}</p>
+            <Card title="Balance" className="min-w-0 p-3 sm:p-4">
+              {d?.errorBalanceBruto ? (
+                <p className="text-xs text-amber-400">{d.errorBalanceBruto}</p>
               ) : (
-                <p className="text-3xl font-bold leading-none text-zinc-100 sm:text-4xl">
-                  {d?.opsPendientes ?? 0}
+                <p className="text-xl font-semibold tabular-nums leading-tight text-emerald-400 sm:text-2xl">
+                  {formatNumber(d?.balanceGeneralBruto ?? 0)}
                 </p>
               )}
             </Card>
