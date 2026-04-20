@@ -6,6 +6,7 @@ import { CollapseCard } from '../components/CollapseCard.jsx'
 import { AbonoModal } from '../components/AbonoModal'
 import { formatMoney, formatNumber, formatDate } from '../utils/format'
 import { MONEDAS_CAMBIO } from '../utils/constants'
+import { etiquetaCliente } from '../utils/clienteLabel.js'
 import { useAppStore } from '../store/useAppStore'
 
 const inputClass =
@@ -197,7 +198,7 @@ export function Deudas() {
               </option>
               {clientes.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {[c.nombre, c.alias].filter(Boolean).join(' · ') || c.id}
+                  {etiquetaCliente(c, c.id)}
                 </option>
               ))}
             </select>
@@ -259,7 +260,7 @@ export function Deudas() {
           <ul className="divide-y divide-zinc-800 text-sm">
             {deudas.map((row) => {
               const c = row.clientes
-              const nombre = [c?.nombre, c?.alias].filter(Boolean).join(' · ') || '—'
+              const nombre = etiquetaCliente(c)
               const mon = row.moneda ?? ''
               return (
                 <li key={row.id} className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">

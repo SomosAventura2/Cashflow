@@ -17,6 +17,7 @@ import {
   MONEDAS_CAMBIO,
 } from '../utils/constants'
 import { formatNumber } from '../utils/format.js'
+import { etiquetaCliente } from '../utils/clienteLabel.js'
 
 const defaultForm = {
   cliente_id: '',
@@ -317,7 +318,7 @@ export function NuevaOperacion() {
               </option>
               {clientes.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {[c.nombre, c.alias].filter(Boolean).join(' · ') || c.id}
+                  {etiquetaCliente(c, c.id)}
                 </option>
               ))}
             </select>

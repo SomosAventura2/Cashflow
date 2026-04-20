@@ -1,4 +1,5 @@
 import { supabase } from '../../lib/supabase.js'
+import { etiquetaCliente } from '../../utils/clienteLabel.js'
 
 /**
  * @param {'cobrar'|'pagar'} kind
@@ -70,7 +71,7 @@ export async function registrarAbono({ kind, deuda, montoAbono }) {
 
   const tipoMov = kind === 'cobrar' ? 'ingreso' : 'egreso'
   const c = deuda.clientes
-  const nombreCliente = [c?.nombre, c?.alias].filter(Boolean).join(' · ') || 'Cliente'
+  const nombreCliente = etiquetaCliente(c, 'Cliente')
   const nota =
     kind === 'cobrar'
       ? `Abono cuenta por cobrar — ${nombreCliente}`

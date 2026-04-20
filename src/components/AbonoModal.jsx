@@ -1,3 +1,5 @@
+import { formatNumber } from '../utils/format'
+
 export function AbonoModal({
   open,
   onClose,
@@ -28,7 +30,7 @@ export function AbonoModal({
           <p className="mt-2 text-sm text-zinc-400">
             Saldo pendiente:{' '}
             <span className="font-medium text-zinc-100">
-              {Number(deuda.saldo ?? 0).toLocaleString('es-VE', { maximumFractionDigits: 4 })} {moneda}
+              {formatNumber(deuda.saldo ?? 0)} {moneda}
             </span>
           </p>
         ) : null}

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { fetchHistorialUnificado } from '../features/historial/api.js'
 import { Card } from './Card'
 import { formatMoney, formatDateTime, formatNumber } from '../utils/format'
+import { etiquetaCliente } from '../utils/clienteLabel.js'
 import { useAppStore } from '../store/useAppStore'
 
 /**
@@ -56,7 +57,7 @@ export function HistorialCajaList({ cardTitle = null, showRefresh = false }) {
             if (line.tipoLinea === 'operacion') {
               const r = line.payload
               const c = r.clientes
-              const nombre = [c?.nombre, c?.alias].filter(Boolean).join(' · ') || '—'
+              const nombre = etiquetaCliente(c)
               return (
                 <li key={`op-${r.id}`} className="flex flex-col gap-1 py-3">
                   <div className="flex flex-wrap items-center justify-between gap-2">
@@ -109,7 +110,7 @@ export function HistorialCajaList({ cardTitle = null, showRefresh = false }) {
 
             const m = line.payload
             const opCli = m.operaciones?.clientes
-            const nombreOp = [opCli?.nombre, opCli?.alias].filter(Boolean).join(' · ')
+            const nombreOp = etiquetaCliente(opCli)
             const esManual = m.operacion_id == null
             const colorClass =
               m.tipo === 'egreso'

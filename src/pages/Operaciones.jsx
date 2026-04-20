@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { fetchOperaciones } from '../features/operaciones/api.js'
 import { Card } from '../components/Card'
 import { formatMoney, formatDateTime } from '../utils/format'
+import { etiquetaCliente } from '../utils/clienteLabel.js'
 import { ROUTES, TIPOS_OPERACION, ESTADOS_OPERACION } from '../utils/constants'
 import { useAppStore } from '../store/useAppStore'
 
@@ -111,7 +112,7 @@ export function Operaciones() {
           <ul className="divide-y divide-zinc-800 text-sm">
             {rows.map((r) => {
               const c = r.clientes
-              const nombre = [c?.nombre, c?.alias].filter(Boolean).join(' · ') || '—'
+              const nombre = etiquetaCliente(c)
               return (
                 <li key={r.id} className="flex flex-col gap-1 py-3">
                   <div className="flex flex-wrap items-center justify-between gap-2">

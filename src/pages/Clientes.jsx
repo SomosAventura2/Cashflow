@@ -3,10 +3,12 @@ import { Card } from '../components/Card'
 import { CollapseCard } from '../components/CollapseCard.jsx'
 import { Input } from '../components/Input'
 import { createCliente, fetchClientes } from '../features/operaciones/api.js'
+import { etiquetaCliente } from '../utils/clienteLabel.js'
 
 const emptyForm = {
   nombre: '',
   apellido: '',
+  alias: '',
 }
 
 export function Clientes() {
@@ -47,7 +49,7 @@ export function Clientes() {
         nombre: form.nombre,
         apellido: form.apellido,
         telefono: '',
-        alias: '',
+        alias: form.alias,
       })
       setForm(emptyForm)
       await load()
@@ -84,6 +86,13 @@ export function Clientes() {
               className="gap-1.5"
             />
           </div>
+          <Input
+            label="Alias / apodo (opcional)"
+            name="alias"
+            value={form.alias}
+            onChange={(e) => updateField('alias', e.target.value)}
+            className="gap-1.5"
+          />
           {error ? (
             <div className="rounded-2xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-300">
               {error}
@@ -108,12 +117,7 @@ export function Clientes() {
           <ul className="divide-y divide-zinc-800 text-sm">
             {list.map((c) => (
               <li key={c.id} className="flex flex-col gap-0.5 py-3 first:pt-0">
-                <span className="font-medium text-zinc-100">
-                  {c.nombre || '—'}
-                  {c.alias && c.alias !== c.nombre ? (
-                    <span className="text-zinc-500"> · {c.alias}</span>
-                  ) : null}
-                </span>
+                <span className="font-medium text-zinc-100">{etiquetaCliente(c)}</span>
                 {c.telefono ? <span className="text-xs text-zinc-500">{c.telefono}</span> : null}
               </li>
             ))}

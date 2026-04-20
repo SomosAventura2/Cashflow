@@ -1,4 +1,5 @@
 import { supabase } from '../../lib/supabase.js'
+import { etiquetaCliente } from '../../utils/clienteLabel.js'
 
 const PAGE = 1000
 
@@ -95,7 +96,7 @@ function buildFromRows(rows) {
     const cid = r.cliente_id
     if (cid) {
       const c = r.clientes
-      const nombre = [c?.nombre, c?.alias].filter(Boolean).join(' · ') || 'Cliente'
+      const nombre = etiquetaCliente(c, 'Cliente')
       if (!porCliente.has(cid)) {
         porCliente.set(cid, { cliente_id: cid, nombre, ops: 0, ganancia: 0 })
       }

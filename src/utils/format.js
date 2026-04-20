@@ -2,12 +2,13 @@ export function formatMoney(value, moneda = 'USD') {
   const n = Number(value)
   if (Number.isNaN(n)) return '—'
   if (moneda === 'USDT') {
-    return `${n.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 6 })} USDT`
+    return `${n.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDT`
   }
   try {
     return new Intl.NumberFormat('es-VE', {
       style: 'currency',
       currency: moneda === 'VES' || moneda === 'Bs' ? 'VES' : 'USD',
+      minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(n)
   } catch {
@@ -15,8 +16,8 @@ export function formatMoney(value, moneda = 'USD') {
   }
 }
 
-/** Número legible sin símbolo de moneda (vista previa / montos mixtos). */
-export function formatNumber(value, maxFrac = 4) {
+/** Número legible sin símbolo de moneda (montos: máx. 2 decimales por defecto). */
+export function formatNumber(value, maxFrac = 2) {
   const n = Number(value)
   if (Number.isNaN(n)) return '—'
   return n.toLocaleString('es-VE', { minimumFractionDigits: 0, maximumFractionDigits: maxFrac })
