@@ -1,0 +1,41 @@
+@import 'tailwindcss';
+
+@layer base {
+  html {
+    @apply antialiased;
+    /* Evita que iOS reescale tipografía al rotar / con teclado */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply m-0 min-h-dvh bg-zinc-950 text-zinc-100;
+    touch-action: manipulation;
+  }
+
+  #root {
+    @apply min-h-dvh;
+    overscroll-behavior-x: none;
+  }
+
+  /*
+   * Safari iOS hace zoom al enfocar si font-size del control < 16px.
+   * max(16px, 1rem) mantiene legibilidad sin forzar zoom del sistema.
+   */
+  @media (pointer: coarse) {
+    input:not([type='checkbox']):not([type='radio']):not([type='range']):not(
+        [type='color']
+      ),
+    textarea,
+    select {
+      font-size: max(16px, 1rem) !important;
+    }
+  }
+
+  button,
+  a[href],
+  [role='button'] {
+    touch-action: manipulation;
+  }
+}
