@@ -118,12 +118,6 @@ export function Reportes() {
                     </span>
                   </li>
                   <li className="flex justify-between gap-2">
-                    <span>Parcial</span>
-                    <span className="tabular-nums text-zinc-100">
-                      {formatNumber(d.porEstado.parcial)}
-                    </span>
-                  </li>
-                  <li className="flex justify-between gap-2">
                     <span>Cerrada</span>
                     <span className="tabular-nums text-zinc-100">
                       {formatNumber(d.porEstado.cerrada)}

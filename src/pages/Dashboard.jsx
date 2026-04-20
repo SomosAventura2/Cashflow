@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Card } from '../components/Card'
 import { formatMoney, formatNumber } from '../utils/format'
-import { ROUTES } from '../utils/constants'
+import { ROUTES, etiquetaEstadoOperacion } from '../utils/constants'
 import { fetchDashboard } from '../features/dashboard/api.js'
 import { useAppStore } from '../store/useAppStore'
 
@@ -106,7 +106,7 @@ export function Dashboard() {
                 </p>
               )}
             </Card>
-            <Card title="Operaciones pendientes / parciales">
+            <Card title="Operaciones pendientes">
               {d?.errorOpsPend ? (
                 <p className="text-xs text-amber-400">{d.errorOpsPend}</p>
               ) : (
@@ -131,7 +131,7 @@ export function Dashboard() {
                     className="flex items-center justify-between gap-2 border-b border-zinc-800/80 py-2 last:border-0"
                   >
                     <span className="capitalize text-zinc-300">{r.tipo}</span>
-                    <span className="text-xs text-zinc-500">{r.estado}</span>
+                    <span className="text-xs text-zinc-500">{etiquetaEstadoOperacion(r.estado)}</span>
                     <span className="font-medium text-emerald-300">
                       {formatMoney(
                         r.ganancia,

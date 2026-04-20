@@ -69,7 +69,13 @@ export async function fetchOperaciones({
     .limit(limit)
 
   if (tipo && tipo !== 'todos') query = query.eq('tipo', tipo)
-  if (estado && estado !== 'todos') query = query.eq('estado', estado)
+  if (estado && estado !== 'todos') {
+    if (estado === 'pendiente') {
+      query = query.in('estado', ['pendiente', 'parcial'])
+    } else {
+      query = query.eq('estado', estado)
+    }
+  }
 
   const { data, error } = await query
   if (error) throw error
@@ -102,7 +108,9 @@ export async function crearOperacion(data) {
   const nota = notaCaja(observacion)
   const modo = data.modo_operacion === 'intermediacion' ? 'intermediacion' : 'propio'
 
-  const estado = data.estado ?? 'pendiente'
+  let estado = String(data.estado ?? 'pendiente').toLowerCase()
+  if (estado === 'parcial') estado = 'pendiente'
+  if (estado !== 'pendiente' && estado !== 'cerrada') estado = 'pendiente'
   const montoIn = Number(data.monto_entrada ?? 0)
   const montoOut = Number(data.monto_salida ?? 0)
   const pendienteOParcial = estado === 'pendiente' || estado === 'parcial'

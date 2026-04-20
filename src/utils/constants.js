@@ -9,7 +9,14 @@ export const ROUTES = {
   reportes: '/reportes',
 }
 
-export const ESTADOS_OPERACION = ['pendiente', 'parcial', 'cerrada']
+export const ESTADOS_OPERACION = ['pendiente', 'cerrada']
+
+/** Listados: filas antiguas con estado `parcial` se muestran como pendiente. */
+export function etiquetaEstadoOperacion(estado) {
+  const e = String(estado ?? '').toLowerCase()
+  if (e === 'parcial') return 'pendiente'
+  return e || '—'
+}
 
 export const TIPOS_OPERACION = ['compra', 'venta']
 

@@ -4,6 +4,7 @@ import { Card } from './Card'
 import { formatMoney, formatDateTime, formatNumber } from '../utils/format'
 import { etiquetaCliente } from '../utils/clienteLabel.js'
 import { useAppStore } from '../store/useAppStore'
+import { etiquetaEstadoOperacion } from '../utils/constants'
 
 /**
  * Lista unificada operaciones + movimientos de caja con saldos USD/USDT tras cada evento.
@@ -83,7 +84,7 @@ export function HistorialCajaList({ cardTitle = null, showRefresh = false }) {
                     </span>
                   </div>
                   <div className="flex flex-wrap justify-between gap-2 text-xs">
-                    <span className="text-zinc-500">Estado: {r.estado}</span>
+                    <span className="text-zinc-500">Estado: {etiquetaEstadoOperacion(r.estado)}</span>
                     <span className="text-emerald-400">
                       Ganancia{' '}
                       {formatMoney(

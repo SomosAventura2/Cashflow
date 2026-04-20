@@ -584,7 +584,7 @@ export function NuevaOperacion() {
               className={`${inputClass} min-h-[96px] resize-none`}
               value={form.observacion}
               onChange={(e) => updateField('observacion', e.target.value)}
-              placeholder="Cliente frecuente, pago parcial, tasa especial…"
+              placeholder="Cliente frecuente, tasa especial…"
             />
           </div>
 

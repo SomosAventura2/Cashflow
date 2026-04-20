@@ -4,7 +4,7 @@ import { fetchOperaciones } from '../features/operaciones/api.js'
 import { Card } from '../components/Card'
 import { formatMoney, formatDateTime } from '../utils/format'
 import { etiquetaCliente } from '../utils/clienteLabel.js'
-import { ROUTES, TIPOS_OPERACION, ESTADOS_OPERACION } from '../utils/constants'
+import { ROUTES, TIPOS_OPERACION, ESTADOS_OPERACION, etiquetaEstadoOperacion } from '../utils/constants'
 import { useAppStore } from '../store/useAppStore'
 
 const inputClass =
@@ -136,7 +136,7 @@ export function Operaciones() {
                     </span>
                   </div>
                   <div className="flex justify-between text-xs">
-                    <span className="text-zinc-500">{r.estado}</span>
+                    <span className="text-zinc-500">{etiquetaEstadoOperacion(r.estado)}</span>
                     <span className="text-emerald-400">
                       Ganancia{' '}
                       {formatMoney(

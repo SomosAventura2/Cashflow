@@ -56,7 +56,7 @@ function buildFromRows(rows) {
   let gananciaTotal = 0
   let opsPropias = 0
   let opsInter = 0
-  const porEstado = { pendiente: 0, parcial: 0, cerrada: 0, otro: 0 }
+  const porEstado = { pendiente: 0, cerrada: 0, otro: 0 }
   const porTipo = { venta: 0, compra: 0, otro: 0 }
 
   for (const r of rows) {
@@ -69,8 +69,9 @@ function buildFromRows(rows) {
     else porTipo.otro += 1
 
     const est = String(r.estado ?? '').toLowerCase()
-    if (est in porEstado) porEstado[est] += 1
-    else porEstado.otro += 1
+    if (est === 'cerrada') porEstado.cerrada += 1
+    else if (est === 'pendiente' || est === 'parcial') porEstado.pendiente += 1
+    else if (est) porEstado.otro += 1
 
     if (r.modo_operacion === 'intermediacion') opsInter += 1
     else opsPropias += 1
