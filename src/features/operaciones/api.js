@@ -1,5 +1,6 @@
 import { supabase } from '../../lib/supabase.js'
 import { calcularOperacion, comisionNetaDesdeMontos } from '../../lib/calculations.js'
+import { upsertCuentaPorCobrarUnificada } from '../deudas/api.js'
 
 function montoParaCalculo(data) {
   if (data.monto != null && !Number.isNaN(Number(data.monto))) {
@@ -257,18 +258,13 @@ export async function crearOperacion(data) {
   // Intermediación: el principal no pasa por tu caja; no crear CXC/CXP automáticas desde montos brutos.
   if (modo !== 'intermediacion' && pendienteOParcial && data.cliente_id) {
     if (tipo === 'venta' && montoIn > 0) {
-      const { error: eCxc } = await supabase.from('cuentas_por_cobrar').insert([
-        {
-          cliente_id: data.cliente_id,
-          operacion_id: opId,
-          moneda: data.moneda_entrada,
-          monto_total: montoIn,
-          monto_pagado: 0,
-          saldo: montoIn,
-          estado,
-        },
-      ])
-      if (eCxc) throw eCxc
+      await upsertCuentaPorCobrarUnificada({
+        cliente_id: data.cliente_id,
+        moneda: data.moneda_entrada,
+        montoAdicional: montoIn,
+        operacion_id: opId,
+        estado,
+      })
     }
     if (tipo === 'compra' && montoOut > 0) {
       const { error: eCxp } = await supabase.from('cuentas_por_pagar').insert([

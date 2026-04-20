@@ -8,12 +8,14 @@ export function AbonoModal({
   kind,
   amount,
   setAmount,
+  monedaMovimiento,
+  setMonedaMovimiento,
   saving,
 }) {
   if (!open) return null
 
   const titulo = kind === 'cobrar' ? 'Registrar cobro' : 'Registrar pago'
-  const moneda = deuda?.moneda ?? '—'
+  const monedaCuenta = deuda?.moneda ?? '—'
 
   return (
     <div
@@ -27,16 +29,48 @@ export function AbonoModal({
           {titulo}
         </h2>
         {deuda ? (
-          <p className="mt-2 text-sm text-zinc-400">
-            Saldo pendiente:{' '}
-            <span className="font-medium text-zinc-100">
-              {formatNumber(deuda.saldo ?? 0)} {moneda}
-            </span>
-          </p>
+          <>
+            <p className="mt-2 text-sm text-zinc-400">
+              Saldo pendiente:{' '}
+              <span className="font-medium text-zinc-100">
+                {formatNumber(deuda.saldo ?? 0)} {monedaCuenta}
+              </span>
+            </p>
+          </>
         ) : null}
 
-        <label className="mt-4 block text-xs font-medium uppercase tracking-wide text-zinc-500">
-          Monto del abono ({moneda})
+        <span className="mt-4 block text-xs font-medium uppercase tracking-wide text-zinc-500">
+          {kind === 'cobrar' ? 'Moneda del cobro en caja' : 'Moneda del pago en caja'}
+        </span>
+        <div className="mt-1.5 grid grid-cols-2 gap-2 rounded-2xl border border-zinc-800 bg-zinc-950 p-1">
+          <button
+            type="button"
+            disabled={saving || !deuda}
+            onClick={() => setMonedaMovimiento('USD')}
+            className={`rounded-xl py-2.5 text-sm font-semibold transition ${
+              monedaMovimiento === 'USD'
+                ? 'bg-sky-600 text-white shadow'
+                : 'border border-transparent bg-zinc-950 text-zinc-400 hover:text-zinc-200'
+            }`}
+          >
+            USD
+          </button>
+          <button
+            type="button"
+            disabled={saving || !deuda}
+            onClick={() => setMonedaMovimiento('USDT')}
+            className={`rounded-xl py-2.5 text-sm font-semibold transition ${
+              monedaMovimiento === 'USDT'
+                ? 'bg-emerald-600 text-white shadow'
+                : 'border border-transparent bg-zinc-950 text-zinc-400 hover:text-zinc-200'
+            }`}
+          >
+            USDT
+          </button>
+        </div>
+
+        <label className="mt-3 block text-xs font-medium uppercase tracking-wide text-zinc-500">
+          Monto del abono
         </label>
         <input
           type="number"

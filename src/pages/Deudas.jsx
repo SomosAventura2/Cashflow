@@ -30,6 +30,7 @@ export function Deudas() {
   const [abonoOpen, setAbonoOpen] = useState(false)
   const [deudaActiva, setDeudaActiva] = useState(null)
   const [abonoMonto, setAbonoMonto] = useState('')
+  const [abonoMonedaCaja, setAbonoMonedaCaja] = useState('USD')
   const [savingAbono, setSavingAbono] = useState(false)
 
   const [clientes, setClientes] = useState([])
@@ -80,6 +81,8 @@ export function Deudas() {
     setError('')
     setDeudaActiva(deuda)
     setAbonoMonto('')
+    const m = String(deuda?.moneda ?? 'USD').toUpperCase()
+    setAbonoMonedaCaja(m === 'USDT' || m === 'USD' ? m : 'USD')
     setAbonoOpen(true)
   }
 
@@ -117,6 +120,7 @@ export function Deudas() {
         kind,
         deuda: deudaActiva,
         montoAbono: abonoMonto,
+        monedaCaja: abonoMonedaCaja,
       })
       setMessage('Abono registrado correctamente.')
       setAbonoOpen(false)
@@ -301,6 +305,8 @@ export function Deudas() {
         kind={kind}
         amount={abonoMonto}
         setAmount={setAbonoMonto}
+        monedaMovimiento={abonoMonedaCaja}
+        setMonedaMovimiento={setAbonoMonedaCaja}
         saving={savingAbono}
       />
     </div>
