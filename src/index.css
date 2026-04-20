@@ -40,3 +40,17 @@
     touch-action: manipulation;
   }
 }
+
+/*
+ * Fuera de @layer: va después del CSS de Tailwind y gana a utilidades (.text-sm, etc.).
+ * En apps solo HTML/CSS sueles usar 16px en inputs o el navegador aplica default mayor;
+ * aquí muchos campos tenían 14px (text-sm) → Safari iOS hace zoom al enfocar.
+ */
+html body #root input:not([type='checkbox']):not([type='radio']):not([type='range']):not(
+    [type='color']
+  ),
+html body #root textarea,
+html body #root select {
+  font-size: 16px !important;
+  touch-action: manipulation;
+}
