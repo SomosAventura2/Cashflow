@@ -242,7 +242,7 @@ export function Deudas() {
 
       <div className={`rounded-2xl border p-4 ${kind === 'cobrar' ? 'border-sky-500/30 bg-sky-500/5' : 'border-orange-500/30 bg-orange-500/5'}`}>
         <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-500">
-          Resumen listado visible
+          Resumen
         </div>
         <div className="mt-1 text-3xl font-bold text-zinc-100">{formatNumber(totalVisible)}</div>
       </div>

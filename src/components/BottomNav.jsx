@@ -29,7 +29,7 @@ const iconWrap = (isActive) =>
 export function BottomNav() {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-20 border-t border-zinc-800 bg-zinc-950/95 backdrop-blur supports-[backdrop-filter]:bg-zinc-950/80">
-      <div className="mx-auto flex max-w-lg justify-between gap-0.5 overflow-x-auto px-1 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-1">
+      <div className="mx-auto flex w-full max-w-lg justify-between gap-0.5 overflow-x-auto px-1 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-1 lg:max-w-5xl lg:px-7 xl:max-w-6xl">
         {items.map(({ to, end, label, Icon }) => (
           <NavLink key={to} to={to} end={end} className={linkClass}>
             {({ isActive }) => (

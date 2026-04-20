@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { fetchHistorialUnificado } from '../features/historial/api.js'
 import { Card } from './Card'
-import { formatMoney, formatDateTime, formatNumber } from '../utils/format'
+import { formatDateTime, formatDecimal, formatNumber } from '../utils/format'
 import { etiquetaCliente } from '../utils/clienteLabel.js'
 import { useAppStore } from '../store/useAppStore'
 import { etiquetaEstadoOperacion } from '../utils/constants'
@@ -75,22 +75,16 @@ export function HistorialCajaList({ cardTitle = null, showRefresh = false }) {
                   <div className="text-xs text-zinc-500">Cliente: {nombre}</div>
                   <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-zinc-400">
                     <span>
-                      {r.moneda_entrada}: {formatMoney(r.monto_entrada, r.moneda_entrada)}
+                      {r.moneda_entrada}: {formatDecimal(r.monto_entrada)}
                     </span>
                     <span>
-                      {r.moneda_salida}: {formatMoney(r.monto_salida, r.moneda_salida)}
+                      {r.moneda_salida}: {formatDecimal(r.monto_salida)}
                     </span>
                   </div>
                   <div className="flex justify-between text-xs">
                     <span className="text-zinc-500">{etiquetaEstadoOperacion(r.estado)}</span>
-                    <span className="text-emerald-400">
-                      Ganancia{' '}
-                      {formatMoney(
-                        r.ganancia,
-                        r.modo_operacion === 'intermediacion' && r.comision_moneda
-                          ? r.comision_moneda
-                          : 'USD',
-                      )}
+                    <span className="font-medium tabular-nums text-emerald-300">
+                      Profit {formatDecimal(r.ganancia)}
                     </span>
                   </div>
                   <div className="mt-1 rounded-lg border border-zinc-800/80 bg-zinc-950/60 px-2 py-1.5 text-[11px] text-zinc-400">
@@ -140,13 +134,13 @@ export function HistorialCajaList({ cardTitle = null, showRefresh = false }) {
                 {m.nota ? <p className="text-xs text-zinc-500">{m.nota}</p> : null}
                 <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-zinc-400">
                   <span>
-                    {m.moneda}: {formatMoney(m.monto, m.moneda)}
+                    {m.moneda}: {formatDecimal(m.monto)}
                   </span>
                 </div>
                 <div className="flex justify-between text-xs">
                   <span className="text-zinc-500">{tipoMovLabel}</span>
                   <span className={`font-medium tabular-nums ${colorClass}`}>
-                    {formatMoney(m.monto, m.moneda)}
+                    {formatDecimal(m.monto)}
                   </span>
                 </div>
                 <div className="mt-1 rounded-lg border border-zinc-800/80 bg-zinc-950/60 px-2 py-1.5 text-[11px] text-zinc-400">

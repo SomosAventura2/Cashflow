@@ -40,7 +40,8 @@ const defaultForm = {
   cambioAutoParUsdUsdt: 'entrada',
 }
 
-const labelClass = 'block text-xs font-medium uppercase tracking-wide text-zinc-500 mb-1.5'
+const labelClass =
+  'block text-xs font-medium uppercase tracking-wide text-zinc-500 mb-1.5 break-words'
 const inputClass =
   'w-full rounded-2xl border border-zinc-800 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/25'
 const cardClass =
@@ -304,13 +305,13 @@ export function NuevaOperacion() {
   const puedeGuardar = Boolean(form.cliente_id) && clientes.length > 0
 
   return (
-    <div className="space-y-6 pb-4">
+    <div className="space-y-6 pb-28 lg:pb-20">
       <header>
         <h1 className="text-2xl font-semibold text-white">Nueva operación</h1>
       </header>
 
-      <section className="flex flex-col gap-6 lg:flex-row lg:items-start">
-        <form className={`${cardClass} flex-1 space-y-4`} onSubmit={onSubmit}>
+      <section className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8">
+        <form className={`${cardClass} min-w-0 w-full flex-1 space-y-4 lg:max-w-none`} onSubmit={onSubmit}>
           <div>
             <label className={labelClass}>Cliente</label>
             <select
@@ -402,8 +403,8 @@ export function NuevaOperacion() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="min-w-0">
               <label className={labelClass}>Moneda entrada</label>
               <select
                 className={inputClass}
@@ -418,7 +419,7 @@ export function NuevaOperacion() {
                 ))}
               </select>
             </div>
-            <div>
+            <div className="min-w-0">
               <label className={labelClass}>Moneda salida</label>
               <select
                 className={inputClass}
@@ -435,8 +436,8 @@ export function NuevaOperacion() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="min-w-0">
               <label className={labelClass}>Entrada</label>
               <input
                 className={`${inputClass} ${parCalcSalida ? 'cursor-not-allowed opacity-90' : ''}`}
@@ -456,7 +457,7 @@ export function NuevaOperacion() {
                 }
               />
             </div>
-            <div>
+            <div className="min-w-0">
               <label className={labelClass}>Salida</label>
               <input
                 className={`${inputClass} ${parCalcEntrada ? 'cursor-not-allowed opacity-90' : ''}`}
@@ -492,8 +493,8 @@ export function NuevaOperacion() {
           ) : null}
 
           {!parMontosManual ? (
-            <div className="grid grid-cols-2 gap-3">
-              <div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="min-w-0">
                 <label className={labelClass}>Comisión %</label>
                 <input
                   className={inputClass}
@@ -507,7 +508,7 @@ export function NuevaOperacion() {
                   placeholder="0"
                 />
               </div>
-              <div>
+              <div className="min-w-0">
                 <label className={labelClass}>Comisión fija</label>
                 <input
                   className={inputClass}
@@ -595,7 +596,7 @@ export function NuevaOperacion() {
           </button>
         </form>
 
-        <aside className="w-full shrink-0 space-y-4 lg:max-w-sm">
+        <aside className="w-full shrink-0 space-y-4 lg:sticky lg:top-4 lg:w-96 lg:max-w-full">
           <div className={`${cardClass} border-emerald-500/25 bg-emerald-500/5`}>
             <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-emerald-400">
               Vista previa
@@ -616,7 +617,7 @@ export function NuevaOperacion() {
               </div>
               <div className="col-span-2">
                 <div className="text-zinc-500">
-                  {esIntermediacion ? 'Lo que entra a tu caja (solo comisión)' : 'Ganancia'}
+                  {esIntermediacion ? 'Lo que entra a tu caja (solo comisión)' : 'Profit'}
                 </div>
                 <div className="mt-1 text-lg font-semibold text-emerald-400">
                   {formatNumber(preview.ganancia)}

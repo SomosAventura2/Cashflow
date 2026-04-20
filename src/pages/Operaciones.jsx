@@ -143,7 +143,7 @@ export function Operaciones() {
                   <div className="flex justify-between text-xs">
                     <span className="text-zinc-500">{etiquetaEstadoOperacion(r.estado)}</span>
                     <span className="text-emerald-400">
-                      Ganancia{' '}
+                      Profit{' '}
                       {formatMoney(
                         r.ganancia,
                         r.modo_operacion === 'intermediacion' && r.comision_moneda

@@ -129,12 +129,24 @@ export function Reportes() {
         </div>
       ) : d ? (
         <>
-          <div className="grid grid-cols-1 gap-3">
-            <Card title="Operaciones totales">
-              <p className="text-3xl font-bold text-zinc-100">{formatNumber(d.totalOperaciones)}</p>
+          <div className="flex w-full min-w-0 flex-row gap-2 sm:gap-3">
+            <Card
+              title="Operaciones totales"
+              className="min-w-0 flex-1 basis-0 p-3 sm:p-4"
+              titleClassName="truncate text-[11px] sm:text-sm"
+            >
+              <p className="truncate text-2xl font-bold text-zinc-100 sm:text-3xl">
+                {formatNumber(d.totalOperaciones)}
+              </p>
             </Card>
-            <Card title="Ganancia acumulada">
-              <p className="text-3xl font-bold text-emerald-400">{formatNumber(d.gananciaTotal)}</p>
+            <Card
+              title="Profit acumulado"
+              className="min-w-0 flex-1 basis-0 p-3 sm:p-4"
+              titleClassName="truncate text-[11px] sm:text-sm"
+            >
+              <p className="truncate text-2xl font-bold text-emerald-400 sm:text-3xl">
+                {formatNumber(d.gananciaTotal)}
+              </p>
             </Card>
           </div>
 
@@ -257,7 +269,7 @@ export function Reportes() {
                       <th className={`pb-2 pr-2 font-medium ${cellNum}`}>Ops</th>
                       <th className={`pb-2 pr-2 font-medium ${cellNum}`}>Ventas</th>
                       <th className={`pb-2 pr-2 font-medium ${cellNum}`}>Compras</th>
-                      <th className={`pb-2 font-medium ${cellNum}`}>Σ ganancia</th>
+                      <th className={`pb-2 font-medium ${cellNum}`}>Σ Profit</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-zinc-800/80">
@@ -280,7 +292,7 @@ export function Reportes() {
           </Card>
 
           <div className="grid gap-3 lg:grid-cols-2">
-            <Card title="Top clientes por ganancia">
+            <Card title="Top clientes por Profit">
               {d.topClientesGanancia.length === 0 ? (
                 <p className="text-sm text-zinc-500">Sin operaciones con cliente asignado.</p>
               ) : (

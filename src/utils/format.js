@@ -16,6 +16,13 @@ export function formatMoney(value, moneda = 'USD') {
   }
 }
 
+/** Montos con 2 decimales en es-VE, sin texto de moneda (el card ya indica USD/USDT). */
+export function formatDecimal(value) {
+  const n = Number(value)
+  if (Number.isNaN(n)) return '—'
+  return n.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
 /** Número legible sin símbolo de moneda (montos: máx. 2 decimales por defecto). */
 export function formatNumber(value, maxFrac = 2) {
   const n = Number(value)

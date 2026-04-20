@@ -119,10 +119,15 @@ export function Clientes() {
               const alias = String(c.alias ?? '').trim()
               return (
                 <li key={c.id} className="flex flex-col gap-0.5 py-3 first:pt-0">
-                  <span className="text-sm text-zinc-500">
-                    {nombre}
-                    {alias ? ` ${alias}` : ''}
-                  </span>
+                  {alias ? (
+                    <span className="text-sm">
+                      {nombre ? <span className="text-zinc-500">{nombre}</span> : null}
+                      {nombre && alias ? ' · ' : null}
+                      <span className="text-white">{alias}</span>
+                    </span>
+                  ) : (
+                    <span className="text-sm text-white">{nombre || '—'}</span>
+                  )}
                   {c.telefono ? <span className="text-xs text-zinc-500">{c.telefono}</span> : null}
                 </li>
               )

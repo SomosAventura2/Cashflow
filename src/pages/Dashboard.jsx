@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Card } from '../components/Card'
-import { formatMoney, formatNumber } from '../utils/format'
+import { formatMoney, formatNumber, formatDecimal } from '../utils/format'
 import { ROUTES, etiquetaEstadoOperacion } from '../utils/constants'
 import { fetchDashboard } from '../features/dashboard/api.js'
 import { useAppStore } from '../store/useAppStore'
@@ -54,7 +54,7 @@ export function Dashboard() {
       ) : (
         <>
           <div className="grid grid-cols-2 gap-2 sm:gap-3">
-            <Card title="Ganancia hoy" className="min-w-0 p-3 sm:p-4">
+            <Card title="Profit hoy" className="min-w-0 p-3 sm:p-4">
               {d?.errorDia ? (
                 <p className="text-xs text-amber-400">{d.errorDia}</p>
               ) : (
@@ -63,7 +63,7 @@ export function Dashboard() {
                 </p>
               )}
             </Card>
-            <Card title="Ganancia últ. 8 ops" className="min-w-0 p-3 sm:p-4">
+            <Card title="Profit últ. 8 ops" className="min-w-0 p-3 sm:p-4">
               <p className="text-lg font-semibold leading-tight text-zinc-100 sm:text-2xl">
                 {formatMoney(d?.totGananciaUltimas ?? 0, 'USD')}
               </p>
@@ -71,18 +71,16 @@ export function Dashboard() {
           </div>
 
           <div>
-            <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-zinc-500">
-              Caja (por movimientos)
-            </h3>
+            <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-zinc-500">Caja</h3>
             <div className="grid grid-cols-3 gap-2 sm:gap-3">
               <Card title="USD" className="min-w-0 p-2 sm:p-3">
                 <p className="truncate text-xs font-semibold tabular-nums text-sky-300 sm:text-lg">
-                  {formatMoney(d?.cajaUsd ?? 0, 'USD')}
+                  {formatDecimal(d?.cajaUsd ?? 0)}
                 </p>
               </Card>
               <Card title="USDT" className="min-w-0 p-2 sm:p-3">
                 <p className="truncate text-xs font-semibold tabular-nums text-sky-300 sm:text-lg">
-                  {formatMoney(d?.cajaUsdt ?? 0, 'USDT')}
+                  {formatDecimal(d?.cajaUsdt ?? 0)}
                 </p>
               </Card>
               <Card title="Total" className="min-w-0 p-2 sm:p-3">
