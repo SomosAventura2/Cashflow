@@ -1,17 +1,48 @@
-import { useCallback, useEffect, useState } from 'react'
-import { fetchReportesResumen } from '../features/reportes/api.js'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { fetchReportesResumen, resumenReporteDesdeFilas } from '../features/reportes/api.js'
 import { Card } from '../components/Card'
 import { formatNumber } from '../utils/format'
 import { useAppStore } from '../store/useAppStore'
+import { REPORTE_PERIODO, REPORTE_PERIODO_OPCIONES } from '../utils/constants'
 
 const labelClass = 'text-xs font-medium uppercase tracking-wide text-zinc-500'
 const cellNum = 'text-right font-medium text-zinc-100 tabular-nums'
+
+const toggleBtn =
+  'rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors sm:px-3 sm:text-sm'
+
+function tituloCierres(timeframe) {
+  switch (timeframe) {
+    case REPORTE_PERIODO.quincenal:
+      return 'Cierres quincenales'
+    case REPORTE_PERIODO.mensual:
+      return 'Cierres mensuales'
+    case REPORTE_PERIODO.todo:
+      return 'Totales agregados'
+    default:
+      return 'Cierres semanales'
+  }
+}
+
+function etiquetaColumnaPeriodo(timeframe) {
+  switch (timeframe) {
+    case REPORTE_PERIODO.quincenal:
+      return 'Quincena'
+    case REPORTE_PERIODO.mensual:
+      return 'Mes'
+    case REPORTE_PERIODO.todo:
+      return 'Alcance'
+    default:
+      return 'Semana'
+  }
+}
 
 export function Reportes() {
   const dashboardNonce = useAppStore((s) => s.dashboardNonce)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [d, setD] = useState(null)
+  const [payload, setPayload] = useState(null)
+  const [timeframe, setTimeframe] = useState(REPORTE_PERIODO.semanal)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -19,9 +50,9 @@ export function Reportes() {
     const { error: err, data } = await fetchReportesResumen()
     if (err) {
       setError(err)
-      setD(null)
+      setPayload(null)
     } else {
-      setD(data)
+      setPayload(data)
     }
     setLoading(false)
   }, [])
@@ -29,6 +60,16 @@ export function Reportes() {
   useEffect(() => {
     load()
   }, [load, dashboardNonce])
+
+  const d = useMemo(() => {
+    if (!payload?.rows) return null
+    const agg = resumenReporteDesdeFilas(payload.rows, timeframe)
+    return {
+      ...agg,
+      totalClientes: payload.totalClientes,
+      errorClientes: payload.errorClientes,
+    }
+  }, [payload, timeframe])
 
   return (
     <div className="space-y-4 pb-2">
@@ -147,15 +188,37 @@ export function Reportes() {
             </div>
           </Card>
 
-          <Card title="Cierres semanales">
-            {d.semanas.length === 0 ? (
+          <Card title={tituloCierres(timeframe)}>
+            <div className="mb-4 flex flex-wrap gap-2">
+              <span className={`${labelClass} mr-1 w-full sm:mr-2 sm:w-auto sm:self-center`}>Agrupar por</span>
+              <div className="flex flex-wrap gap-1.5">
+                {REPORTE_PERIODO_OPCIONES.map((opt) => {
+                  const active = timeframe === opt.value
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setTimeframe(opt.value)}
+                      className={`${toggleBtn} ${
+                        active
+                          ? 'border-emerald-500/60 bg-emerald-500/15 text-emerald-200'
+                          : 'border-zinc-700 text-zinc-400 hover:border-zinc-600 hover:bg-zinc-900/80'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+            {d.periodos.length === 0 ? (
               <p className="text-sm text-zinc-500">Aún no hay operaciones para agrupar.</p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[320px] text-left text-sm">
                   <thead>
                     <tr className="border-b border-zinc-800 text-xs text-zinc-500">
-                      <th className="pb-2 pr-2 font-medium">Semana</th>
+                      <th className="pb-2 pr-2 font-medium">{etiquetaColumnaPeriodo(timeframe)}</th>
                       <th className={`pb-2 pr-2 font-medium ${cellNum}`}>Ops</th>
                       <th className={`pb-2 pr-2 font-medium ${cellNum}`}>Ventas</th>
                       <th className={`pb-2 pr-2 font-medium ${cellNum}`}>Compras</th>
@@ -163,8 +226,8 @@ export function Reportes() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-zinc-800/80">
-                    {d.semanas.map((s) => (
-                      <tr key={s.weekStart.getTime()} className="text-zinc-300">
+                    {d.periodos.map((s) => (
+                      <tr key={s.periodKey} className="text-zinc-300">
                         <td className="py-2.5 pr-2 text-zinc-200">{s.etiqueta}</td>
                         <td className={`py-2.5 pr-2 ${cellNum}`}>{formatNumber(s.count)}</td>
                         <td className={`py-2.5 pr-2 ${cellNum}`}>{formatNumber(s.ventas)}</td>

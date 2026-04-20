@@ -1,5 +1,6 @@
 import { supabase } from '../../lib/supabase.js'
 import { etiquetaCliente } from '../../utils/clienteLabel.js'
+import { REPORTE_PERIODO } from '../../utils/constants.js'
 
 const PAGE = 1000
 
@@ -14,17 +15,53 @@ function inicioSemanaLunes(isoOrDate) {
   return d
 }
 
-function weekStartTs(isoOrDate) {
-  const d = inicioSemanaLunes(isoOrDate)
-  return d ? d.getTime() : 0
-}
+/**
+ * @param {string|Date} isoOrDate
+ * @param {typeof REPORTE_PERIODO[keyof typeof REPORTE_PERIODO]} timeframe
+ * @returns {{ key: string, start: Date|null, etiqueta: string }}
+ */
+function bucketPeriodo(isoOrDate, timeframe) {
+  const d = new Date(isoOrDate)
+  if (Number.isNaN(d.getTime())) {
+    return { key: '_', start: null, etiqueta: '—' }
+  }
 
-function etiquetaSemana(inicioLunes) {
-  if (!inicioLunes) return '—'
-  const fin = new Date(inicioLunes)
+  if (timeframe === REPORTE_PERIODO.todo) {
+    return { key: 'all', start: new Date(0), etiqueta: 'Todo el historial' }
+  }
+
+  if (timeframe === REPORTE_PERIODO.mensual) {
+    const start = new Date(d.getFullYear(), d.getMonth(), 1, 0, 0, 0, 0)
+    const key = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}`
+    const etiqueta = start.toLocaleDateString('es-VE', { month: 'long', year: 'numeric' })
+    return { key, start, etiqueta }
+  }
+
+  if (timeframe === REPORTE_PERIODO.quincenal) {
+    const y = d.getFullYear()
+    const m = d.getMonth()
+    const day = d.getDate()
+    const firstHalf = day <= 15
+    const start = new Date(y, m, firstHalf ? 1 : 16, 0, 0, 0, 0)
+    const lastDay = new Date(y, m + 1, 0).getDate()
+    const end = new Date(y, m, firstHalf ? 15 : lastDay, 0, 0, 0, 0)
+    const key = `${y}-${String(m + 1).padStart(2, '0')}-q${firstHalf ? 1 : 2}`
+    const opt = { day: 'numeric', month: 'short' }
+    const etiqueta = `${start.toLocaleDateString('es-VE', opt)} – ${end.toLocaleDateString('es-VE', opt)}`
+    return { key, start, etiqueta }
+  }
+
+  // semanal (default)
+  const start = inicioSemanaLunes(isoOrDate)
+  if (!start) {
+    return { key: '_', start: null, etiqueta: '—' }
+  }
+  const fin = new Date(start)
   fin.setDate(fin.getDate() + 6)
   const opt = { day: 'numeric', month: 'short' }
-  return `${inicioLunes.toLocaleDateString('es-VE', opt)} – ${fin.toLocaleDateString('es-VE', opt)}`
+  const key = String(start.getTime())
+  const etiqueta = `${start.toLocaleDateString('es-VE', opt)} – ${fin.toLocaleDateString('es-VE', opt)}`
+  return { key, start, etiqueta }
 }
 
 async function fetchAllOperacionesReporte() {
@@ -47,9 +84,9 @@ async function fetchAllOperacionesReporte() {
   return all
 }
 
-function buildFromRows(rows) {
-  /** @type {Map<number, { weekStart: Date, count: number, ganancia: number, ventas: number, compras: number, otras: number }>} */
-  const porSemana = new Map()
+function buildFromRows(rows, timeframe = REPORTE_PERIODO.semanal) {
+  /** @type {Map<string, { periodKey: string, periodStart: Date|null, etiqueta: string, count: number, ganancia: number, ventas: number, compras: number }>} */
+  const porPeriodo = new Map()
   /** @type {Map<string, { cliente_id: string, nombre: string, ops: number, ganancia: number }>} */
   const porCliente = new Map()
 
@@ -76,18 +113,20 @@ function buildFromRows(rows) {
     if (r.modo_operacion === 'intermediacion') opsInter += 1
     else opsPropias += 1
 
-    const ts = weekStartTs(r.created_at)
-    if (ts) {
-      if (!porSemana.has(ts)) {
-        porSemana.set(ts, {
-          weekStart: inicioSemanaLunes(r.created_at),
+    const { key, start, etiqueta } = bucketPeriodo(r.created_at, timeframe)
+    if (key !== '_') {
+      if (!porPeriodo.has(key)) {
+        porPeriodo.set(key, {
+          periodKey: key,
+          periodStart: start,
+          etiqueta,
           count: 0,
           ganancia: 0,
           ventas: 0,
           compras: 0,
         })
       }
-      const w = porSemana.get(ts)
+      const w = porPeriodo.get(key)
       w.count += 1
       w.ganancia += g
       if (tipo === 'venta') w.ventas += 1
@@ -107,12 +146,12 @@ function buildFromRows(rows) {
     }
   }
 
-  const semanas = Array.from(porSemana.values())
-    .sort((a, b) => b.weekStart.getTime() - a.weekStart.getTime())
-    .map((w) => ({
-      ...w,
-      etiqueta: etiquetaSemana(w.weekStart),
-    }))
+  const periodos = Array.from(porPeriodo.values()).sort((a, b) => {
+    if (timeframe === REPORTE_PERIODO.todo) return 0
+    const ta = a.periodStart?.getTime() ?? 0
+    const tb = b.periodStart?.getTime() ?? 0
+    return tb - ta
+  })
 
   const clientesArr = Array.from(porCliente.values())
   const topClientesGanancia = [...clientesArr].sort((a, b) => b.ganancia - a.ganancia).slice(0, 20)
@@ -125,11 +164,20 @@ function buildFromRows(rows) {
     porEstado,
     opsPropias,
     opsInter,
-    semanas,
+    periodos,
     topClientesGanancia,
     topClientesOps,
     clientesConOperacion: clientesArr.length,
   }
+}
+
+/**
+ * Resume métricas y series temporales desde filas ya cargadas (p. ej. al cambiar el periodo en UI).
+ * @param {object[]} rows
+ * @param {typeof REPORTE_PERIODO[keyof typeof REPORTE_PERIODO]} [timeframe]
+ */
+export function resumenReporteDesdeFilas(rows, timeframe = REPORTE_PERIODO.semanal) {
+  return buildFromRows(rows, timeframe)
 }
 
 /**
@@ -142,13 +190,12 @@ export async function fetchReportesResumen() {
       supabase.from('clientes').select('id', { count: 'exact', head: true }),
     ])
 
-    const built = buildFromRows(rows)
     const totalClientes = countCli.error ? null : countCli.count ?? 0
 
     return {
       error: null,
       data: {
-        ...built,
+        rows,
         totalClientes,
         errorClientes: countCli.error?.message ?? null,
       },

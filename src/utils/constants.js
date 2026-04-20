@@ -30,3 +30,19 @@ export const MODOS_OPERACION = [
 export const MONEDAS_CAMBIO = ['USD', 'USDT']
 
 export const MONEDAS_COMISION = MONEDAS_CAMBIO
+
+/** Agrupación temporal en la pantalla Reportes. */
+export const REPORTE_PERIODO = /** @type {const} */ ({
+  semanal: 'semanal',
+  quincenal: 'quincenal',
+  mensual: 'mensual',
+  todo: 'todo',
+})
+
+/** Opciones UI: valor + etiqueta. */
+export const REPORTE_PERIODO_OPCIONES = [
+  { value: REPORTE_PERIODO.semanal, label: 'Semanal' },
+  { value: REPORTE_PERIODO.quincenal, label: 'Quincenal' },
+  { value: REPORTE_PERIODO.mensual, label: 'Mensual' },
+  { value: REPORTE_PERIODO.todo, label: 'Todo' },
+]

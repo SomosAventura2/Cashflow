@@ -256,13 +256,11 @@ export function calcularOperacion({
       compraUsdFijoSalida,
       tasa,
     })
-    const ingresoReal = mIn / rate
-    const comisionUsd = comision / rate
-    const costoReal = mOut + comisionUsd
+    // MVP (misma idea que venta): la ganancia explícita es la comisión; el par auto deja ~0 el spread contable.
     return {
-      costoReal,
-      ingresoReal,
-      ganancia: ingresoReal - costoReal,
+      costoReal: 0,
+      ingresoReal: comision,
+      ganancia: comision,
     }
   }
 
