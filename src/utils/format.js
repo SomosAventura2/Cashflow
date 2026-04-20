@@ -32,3 +32,18 @@ export function formatDate(iso) {
     year: 'numeric',
   })
 }
+
+/** Fecha y hora local (historial, movimientos). */
+export function formatDateTime(iso) {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return '—'
+  return d.toLocaleString('es-VE', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  })
+}

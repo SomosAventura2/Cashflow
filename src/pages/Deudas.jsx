@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { crearDeudaManual, fetchDeudas, registrarAbono } from '../features/deudas/api.js'
 import { fetchClientes } from '../features/operaciones/api.js'
 import { Card } from '../components/Card'
+import { CollapseCard } from '../components/CollapseCard.jsx'
 import { AbonoModal } from '../components/AbonoModal'
 import { formatMoney, formatNumber, formatDate } from '../utils/format'
 import { MONEDAS_CAMBIO } from '../utils/constants'
@@ -20,8 +21,6 @@ export function Deudas() {
   const dashboardNonce = useAppStore((s) => s.dashboardNonce)
 
   const [kind, setKind] = useState('cobrar')
-  const [estado, setEstado] = useState('todo')
-  const [q, setQ] = useState('')
   const [deudas, setDeudas] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -43,7 +42,7 @@ export function Deudas() {
     setLoading(true)
     setError('')
     try {
-      const rows = await fetchDeudas(kind, { estado, q })
+      const rows = await fetchDeudas(kind, { estado: 'todo', q: '' })
       setDeudas(rows)
     } catch (e) {
       setError(e?.message ?? String(e))
@@ -51,7 +50,7 @@ export function Deudas() {
     } finally {
       setLoading(false)
     }
-  }, [kind, estado, q])
+  }, [kind])
 
   useEffect(() => {
     loadDeudas()
@@ -183,14 +182,11 @@ export function Deudas() {
         </button>
       </div>
 
-      <Card>
-        <h2 className="text-sm font-semibold text-zinc-100">
-          Agregar {kind === 'cobrar' ? 'cuenta por cobrar' : 'cuenta por pagar'} (manual)
-        </h2>
-        <p className="mt-1 text-xs text-zinc-500">
-          Sin operación: queda en libros con saldo pendiente hasta que registres abonos.
-        </p>
-        <form className="mt-4 grid gap-3 sm:grid-cols-2" onSubmit={submitManualDeuda}>
+      <CollapseCard
+        title={`Agregar ${kind === 'cobrar' ? 'cuenta por cobrar' : 'cuenta por pagar'} (manual)`}
+        subtitle="Sin operación: queda en libros hasta abonos."
+      >
+        <form className="grid gap-3 sm:grid-cols-2" onSubmit={submitManualDeuda}>
           <div className="sm:col-span-2">
             <label className="mb-1 block text-xs text-zinc-500">Cliente</label>
             <select
@@ -229,6 +225,8 @@ export function Deudas() {
             <input
               className={inputClass}
               type="number"
+              inputMode="decimal"
+              enterKeyHint="done"
               min="0"
               step="any"
               value={manualMonto}
@@ -247,7 +245,7 @@ export function Deudas() {
             </button>
           </div>
         </form>
-      </Card>
+      </CollapseCard>
 
       <div className={`rounded-2xl border p-4 ${kind === 'cobrar' ? 'border-sky-500/30 bg-sky-500/5' : 'border-orange-500/30 bg-orange-500/5'}`}>
         <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-500">
@@ -259,29 +257,6 @@ export function Deudas() {
           saldos filtrados)
         </div>
       </div>
-
-      <Card>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div>
-            <label className="mb-1 block text-xs text-zinc-500">Buscar cliente</label>
-            <input
-              className={inputClass}
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Nombre, alias…"
-            />
-          </div>
-          <div>
-            <label className="mb-1 block text-xs text-zinc-500">Estado</label>
-            <select className={inputClass} value={estado} onChange={(e) => setEstado(e.target.value)}>
-              <option value="todo">Todos</option>
-              <option value="pendiente">pendiente</option>
-              <option value="parcial">parcial</option>
-              <option value="cerrada">cerrada</option>
-            </select>
-          </div>
-        </div>
-      </Card>
 
       <Card>
         {loading ? (

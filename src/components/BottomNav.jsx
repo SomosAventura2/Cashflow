@@ -12,9 +12,9 @@ import { ROUTES } from '../utils/constants'
 const items = [
   { to: ROUTES.home, end: true, label: 'Inicio', Icon: Home },
   { to: ROUTES.operar, label: 'Operar', Icon: ArrowLeftRight },
-  { to: ROUTES.clientes, label: 'Clientes', Icon: Users },
   { to: ROUTES.deudas, label: 'Deudas', Icon: HandCoins },
   { to: ROUTES.caja, label: 'Caja', Icon: Wallet },
+  { to: ROUTES.clientes, label: 'Clientes', Icon: Users },
   { to: ROUTES.reportes, label: 'Reportes', Icon: BarChart3 },
 ]
 

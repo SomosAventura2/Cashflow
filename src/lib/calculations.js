@@ -57,6 +57,43 @@ export function calcularUsdtEntradaDesdeUsdNetoCompra({ montoUsdNeto, comisionPc
   return (net * rate * (100 + pct)) / 100
 }
 
+/** Tasa = USDT por 1 USD (vacío o inválido → 1). */
+function tasaUsdtPorUsd(tasa) {
+  const tasaNum = tasa === '' || tasa == null ? 1 : Number(tasa)
+  return Number.isFinite(tasaNum) && tasaNum > 0 ? tasaNum : 1
+}
+
+/**
+ * Par USD↔USDT con montos manuales y sin % explícito: ganancia en USD vía spread.
+ * Compra USDT→USD: valor USD de lo que recibes (USDT÷tasa) menos USD que pagas.
+ * Venta USD→USDT: USD que cobras menos valor USD del USDT que entregas (USDT÷tasa).
+ */
+export function economiaSpreadManualUsdUsdt({
+  tipo,
+  moneda_entrada,
+  moneda_salida,
+  monto_entrada,
+  monto_salida,
+  tasa,
+}) {
+  const me = String(moneda_entrada ?? '').toUpperCase()
+  const ms = String(moneda_salida ?? '').toUpperCase()
+  const r = tasaUsdtPorUsd(tasa)
+  const mIn = Number(monto_entrada) || 0
+  const mOut = Number(monto_salida) || 0
+  if (tipo === 'venta' && me === 'USD' && ms === 'USDT') {
+    const ingresoReal = mIn
+    const costoReal = mOut / r
+    return { ingresoReal, costoReal, ganancia: ingresoReal - costoReal, comisionNeta: 0 }
+  }
+  if (tipo === 'compra' && me === 'USDT' && ms === 'USD') {
+    const ingresoReal = mIn / r
+    const costoReal = mOut
+    return { ingresoReal, costoReal, ganancia: ingresoReal - costoReal, comisionNeta: 0 }
+  }
+  return null
+}
+
 /**
  * Venta típica: cobras USD, entregas USDT **neto** al cliente; el % es sobre el USDT **bruto** del pedido.
  * Ej. 5% sobre bruto 200 → envías 190; comisión = 190 × 5 / (100 − 5) = 10 (no 190 × 5%).
@@ -145,6 +182,7 @@ export function comisionNetaDesdeMontos({
  * @param {number} [params.monto_salida]
  * @param {boolean} [params.cambio_auto_fijo_salida] fijar USDT en venta USD→USDT o USD en compra USDT→USD
  * @param {string|number} [params.tasa]
+ * @param {boolean} [params.parMontosManual] par USD↔USDT con comisión 0: ganancia = spread en USD
  */
 export function calcularOperacion({
   monto,
@@ -157,17 +195,32 @@ export function calcularOperacion({
   monto_salida,
   cambio_auto_fijo_salida,
   tasa,
+  parMontosManual = false,
 }) {
   const me = String(moneda_entrada ?? '').toUpperCase()
   const ms = String(moneda_salida ?? '').toUpperCase()
+  const rate = tasaUsdtPorUsd(tasa)
+  const mIn = Number(monto_entrada) || 0
+  const mOut = Number(monto_salida) || 0
+
+  const spreadManual = economiaSpreadManualUsdUsdt({
+    tipo,
+    moneda_entrada,
+    moneda_salida,
+    monto_entrada: mIn,
+    monto_salida: mOut,
+    tasa,
+  })
+  if (parMontosManual && spreadManual) {
+    return {
+      costoReal: spreadManual.costoReal,
+      ingresoReal: spreadManual.ingresoReal,
+      ganancia: spreadManual.ganancia,
+    }
+  }
+
   const ventaUsdtFijoSalida = tipo === 'venta' && !!cambio_auto_fijo_salida && me === 'USD' && ms === 'USDT'
   const compraUsdFijoSalida = tipo === 'compra' && !!cambio_auto_fijo_salida && me === 'USDT' && ms === 'USD'
-  let costoReal = 0
-  let ingresoReal = 0
-
-  if (tipo === 'compra') {
-    costoReal = monto + (monto * comisionPct) / 100 + comisionFija
-  }
 
   if (tipo === 'venta') {
     const comision = comisionNetaDesdeMontos({
@@ -182,21 +235,43 @@ export function calcularOperacion({
       compraUsdFijoSalida,
       tasa,
     })
-    ingresoReal = comision
-    costoReal = 0
     return {
-      costoReal,
-      ingresoReal,
+      costoReal: 0,
+      ingresoReal: comision,
       ganancia: comision,
     }
   }
 
-  const ganancia = ingresoReal - costoReal
+  /** Compra USDT→USD: la comisión explícita (USDT) te la cargas en USD; ganancia = valor USD recibido − USD pagados − comisión en USD. */
+  if (tipo === 'compra' && me === 'USDT' && ms === 'USD') {
+    const comision = comisionNetaDesdeMontos({
+      tipo: 'compra',
+      montoEntrada: mIn,
+      montoSalida: mOut,
+      monedaEntrada: moneda_entrada,
+      monedaSalida: moneda_salida,
+      comisionPct,
+      comisionFija,
+      ventaUsdtFijoSalida: false,
+      compraUsdFijoSalida,
+      tasa,
+    })
+    const ingresoReal = mIn / rate
+    const comisionUsd = comision / rate
+    const costoReal = mOut + comisionUsd
+    return {
+      costoReal,
+      ingresoReal,
+      ganancia: ingresoReal - costoReal,
+    }
+  }
 
+  const montoBase = Number(monto) || 0
+  const costoRealFallback = montoBase + (montoBase * comisionPct) / 100 + comisionFija
   return {
-    costoReal,
-    ingresoReal,
-    ganancia,
+    costoReal: costoRealFallback,
+    ingresoReal: 0,
+    ganancia: -costoRealFallback,
   }
 }
 
@@ -209,14 +284,7 @@ export function armarVistaPrevia(form) {
   const montoEntrada = Number(form.monto_entrada) || 0
   const montoSalida = Number(form.monto_salida) || 0
 
-  const comisionNeta = comisionNetaDesdeMontos({
-    tipo,
-    montoEntrada,
-    montoSalida,
-    monedaEntrada: form.moneda_entrada,
-    monedaSalida: form.moneda_salida,
-    comisionPct,
-    comisionFija,
+  const flagsFijoSalida = {
     ventaUsdtFijoSalida:
       modo !== 'intermediacion' &&
       !!form.cambio_auto_fijo_salida &&
@@ -229,10 +297,21 @@ export function armarVistaPrevia(form) {
       tipo === 'compra' &&
       String(form.moneda_entrada ?? '').toUpperCase() === 'USDT' &&
       String(form.moneda_salida ?? '').toUpperCase() === 'USD',
-    tasa: form.tasa,
-  })
+  }
 
   if (modo === 'intermediacion') {
+    const comisionNeta = comisionNetaDesdeMontos({
+      tipo,
+      montoEntrada,
+      montoSalida,
+      monedaEntrada: form.moneda_entrada,
+      monedaSalida: form.moneda_salida,
+      comisionPct,
+      comisionFija,
+      ventaUsdtFijoSalida: flagsFijoSalida.ventaUsdtFijoSalida,
+      compraUsdFijoSalida: flagsFijoSalida.compraUsdFijoSalida,
+      tasa: form.tasa,
+    })
     return {
       modo,
       montoEntrada,
@@ -243,6 +322,41 @@ export function armarVistaPrevia(form) {
       ganancia: comisionNeta,
     }
   }
+
+  if ((form.cambioAutoParUsdUsdt ?? '') === 'manual') {
+    const sp = economiaSpreadManualUsdUsdt({
+      tipo,
+      moneda_entrada: form.moneda_entrada,
+      moneda_salida: form.moneda_salida,
+      monto_entrada: montoEntrada,
+      monto_salida: montoSalida,
+      tasa: form.tasa,
+    })
+    if (sp) {
+      return {
+        modo,
+        montoEntrada,
+        montoSalida,
+        comisionNeta: 0,
+        costoReal: sp.costoReal,
+        ingresoReal: sp.ingresoReal,
+        ganancia: sp.ganancia,
+      }
+    }
+  }
+
+  const comisionNeta = comisionNetaDesdeMontos({
+    tipo,
+    montoEntrada,
+    montoSalida,
+    monedaEntrada: form.moneda_entrada,
+    monedaSalida: form.moneda_salida,
+    comisionPct,
+    comisionFija,
+    ventaUsdtFijoSalida: flagsFijoSalida.ventaUsdtFijoSalida,
+    compraUsdFijoSalida: flagsFijoSalida.compraUsdFijoSalida,
+    tasa: form.tasa,
+  })
 
   const monto = tipo === 'compra' ? montoEntrada : montoSalida
 
@@ -265,6 +379,7 @@ export function armarVistaPrevia(form) {
           String(form.moneda_entrada ?? '').toUpperCase() === 'USDT' &&
           String(form.moneda_salida ?? '').toUpperCase() === 'USD')),
     tasa: form.tasa,
+    parMontosManual: false,
   })
 
   return {

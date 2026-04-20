@@ -38,6 +38,8 @@ export function AbonoModal({
         </label>
         <input
           type="number"
+          inputMode="decimal"
+          enterKeyHint="done"
           min="0"
           step="any"
           className="mt-1 w-full rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2.5 text-zinc-100 outline-none focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/25"

@@ -13,6 +13,8 @@ export async function fetchDeudas(kind, { estado = 'todo', q = '' } = {}) {
 
   if (estado && estado !== 'todo') {
     query = query.eq('estado', estado)
+  } else {
+    query = query.neq('estado', 'cerrada')
   }
 
   const { data, error } = await query
@@ -67,10 +69,12 @@ export async function registrarAbono({ kind, deuda, montoAbono }) {
   if (eUp) throw eUp
 
   const tipoMov = kind === 'cobrar' ? 'ingreso' : 'egreso'
+  const c = deuda.clientes
+  const nombreCliente = [c?.nombre, c?.alias].filter(Boolean).join(' · ') || 'Cliente'
   const nota =
     kind === 'cobrar'
-      ? `Abono cuenta por cobrar (${String(deuda.id).slice(0, 8)}…)`
-      : `Abono cuenta por pagar (${String(deuda.id).slice(0, 8)}…)`
+      ? `Abono cuenta por cobrar — ${nombreCliente}`
+      : `Abono cuenta por pagar — ${nombreCliente}`
 
   const { error: eMov } = await supabase.from('movimientos_caja').insert([
     {

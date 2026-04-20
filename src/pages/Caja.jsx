@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Card } from '../components/Card'
+import { CollapseCard } from '../components/CollapseCard.jsx'
 import { Input } from '../components/Input'
-import { formatMoney } from '../utils/format'
+import { formatMoney, formatDateTime } from '../utils/format'
 import { MONEDAS_CAMBIO } from '../utils/constants'
 import { fetchMovimientosCaja, registrarMovimientoManual } from '../features/caja/api.js'
 import { useAppStore } from '../store/useAppStore'
@@ -77,8 +78,7 @@ export function Caja() {
         </p>
       </header>
 
-      <Card>
-        <h2 className="mb-3 text-sm font-medium tracking-wide text-zinc-400">Ajuste manual</h2>
+      <CollapseCard title="Ajuste manual" subtitle="Capital, gastos, retiros u otros movimientos sin operación.">
         <form className="space-y-3" onSubmit={onSubmitManual}>
           <div>
             <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-zinc-500">
@@ -139,7 +139,7 @@ export function Caja() {
             {saving ? 'Guardando…' : 'Registrar movimiento'}
           </button>
         </form>
-      </Card>
+      </CollapseCard>
 
       <Card title="Últimos movimientos">
         {loading ? (
@@ -152,6 +152,8 @@ export function Caja() {
           <ul className="divide-y divide-zinc-800 text-sm">
             {rows.map((m) => {
               const esManual = m.operacion_id == null
+              const opCli = m.operaciones?.clientes
+              const nombreClienteOp = [opCli?.nombre, opCli?.alias].filter(Boolean).join(' · ')
               const colorClass =
                 m.tipo === 'egreso'
                   ? 'text-red-300'
@@ -161,9 +163,10 @@ export function Caja() {
               return (
                 <li key={m.id} className="flex items-start justify-between gap-3 py-3">
                   <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                       <span className="capitalize text-zinc-300">{m.tipo}</span>
                       <span className="text-zinc-500">{m.moneda}</span>
+                      <span className="text-[11px] text-zinc-600">{formatDateTime(m.created_at)}</span>
                       {esManual ? (
                         <span className="rounded-full border border-zinc-600 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-zinc-400">
                           Manual
@@ -171,6 +174,9 @@ export function Caja() {
                       ) : null}
                     </div>
                     {m.nota ? <p className="mt-1 truncate text-xs text-zinc-600">{m.nota}</p> : null}
+                    {!esManual && nombreClienteOp ? (
+                      <p className="mt-0.5 truncate text-xs text-zinc-500">Cliente: {nombreClienteOp}</p>
+                    ) : null}
                   </div>
                   <span className={`shrink-0 font-medium ${colorClass}`}>
                     {formatMoney(m.monto, m.moneda)}

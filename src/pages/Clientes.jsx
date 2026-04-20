@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Card } from '../components/Card'
+import { CollapseCard } from '../components/CollapseCard.jsx'
 import { Input } from '../components/Input'
 import { createCliente, fetchClientes } from '../features/operaciones/api.js'
 
@@ -68,8 +69,7 @@ export function Clientes() {
         </p>
       </header>
 
-      <Card>
-        <h2 className="mb-4 text-sm font-medium tracking-wide text-zinc-400">Nuevo cliente</h2>
+      <CollapseCard title="Nuevo cliente" subtitle="Alta rápida para operaciones y deudas.">
         <form className="space-y-4" onSubmit={onSubmit}>
           <div className="grid gap-3 sm:grid-cols-2">
             <Input
@@ -118,7 +118,7 @@ export function Clientes() {
             {saving ? 'Guardando…' : 'Guardar cliente'}
           </button>
         </form>
-      </Card>
+      </CollapseCard>
 
       <Card title="Directorio">
         {loading ? (

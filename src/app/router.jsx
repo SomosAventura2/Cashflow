@@ -10,6 +10,7 @@ import { Clientes } from '../pages/Clientes.jsx'
 import { Deudas } from '../pages/Deudas.jsx'
 import { Caja } from '../pages/Caja.jsx'
 import { Reportes } from '../pages/Reportes.jsx'
+import { Historial } from '../pages/Historial.jsx'
 import { Login } from '../pages/Login.jsx'
 
 export const router = createBrowserRouter([
@@ -24,6 +25,7 @@ export const router = createBrowserRouter([
       { index: true, element: <Dashboard /> },
       { path: ROUTES.operar.slice(1), element: <NuevaOperacion /> },
       { path: ROUTES.operaciones.slice(1), element: <Operaciones /> },
+      { path: ROUTES.historial.slice(1), element: <Historial /> },
       { path: ROUTES.clientes.slice(1), element: <Clientes /> },
       { path: ROUTES.deudas.slice(1), element: <Deudas /> },
       { path: ROUTES.caja.slice(1), element: <Caja /> },

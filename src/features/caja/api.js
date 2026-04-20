@@ -36,7 +36,7 @@ export async function registrarMovimientoManual({ tipo, moneda, monto, nota }) {
 export async function fetchMovimientosCaja({ limit = 60 } = {}) {
   const { data, error } = await supabase
     .from('movimientos_caja')
-    .select('*')
+    .select('*, operaciones(clientes(nombre, alias))')
     .order('created_at', { ascending: false })
     .limit(limit)
   if (error) throw error

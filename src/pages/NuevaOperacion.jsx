@@ -11,7 +11,6 @@ import {
 import { useAppStore } from '../store/useAppStore'
 import {
   ROUTES,
-  TIPOS_OPERACION,
   ESTADOS_OPERACION,
   MODOS_OPERACION,
   MONEDAS_COMISION,
@@ -33,8 +32,11 @@ const defaultForm = {
   comision_fija: '0',
   estado: 'pendiente',
   observacion: '',
-  /** Venta USD→USDT: fijar salida USDT; compra USDT→USD: fijar salida USD; en ambos casos comisión % “aparte” sobre nominal. */
-  cambio_auto_fijo_salida: false,
+  /**
+   * Par USD↔USDT sin comisión fija: `entrada` calcula salida; `salida` calcula entrada; `manual` ambos editables.
+   * Al guardar se mapea a `cambio_auto_fijo_salida` (solo true en modo `salida`).
+   */
+  cambioAutoParUsdUsdt: 'entrada',
 }
 
 const labelClass = 'block text-xs font-medium uppercase tracking-wide text-zinc-500 mb-1.5'
@@ -42,6 +44,8 @@ const inputClass =
   'w-full rounded-2xl border border-zinc-800 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/25'
 const cardClass =
   'rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4'
+
+const CICLOS_CAMBIO_AUTO = ['entrada', 'salida', 'manual']
 
 export function NuevaOperacion() {
   const navigate = useNavigate()
@@ -51,7 +55,14 @@ export function NuevaOperacion() {
   const [loadingClientes, setLoadingClientes] = useState(true)
   const [error, setError] = useState(null)
   const [saving, setSaving] = useState(false)
-  const preview = useMemo(() => armarVistaPrevia(form), [form])
+  const preview = useMemo(
+    () =>
+      armarVistaPrevia({
+        ...form,
+        cambio_auto_fijo_salida: form.cambioAutoParUsdUsdt === 'salida',
+      }),
+    [form],
+  )
 
   const fijoAutoEntradaLabel = form.tipo === 'venta' ? 'USD' : 'USDT'
   const fijoAutoSalidaLabel = form.tipo === 'venta' ? 'USDT' : 'USD'
@@ -65,8 +76,12 @@ export function NuevaOperacion() {
         form.moneda_salida === 'USD')) &&
     (Number(form.comision_fija) === 0 || form.comision_fija === '')
 
+  const parCalcEntrada = autoCambioUsdUsdt && form.cambioAutoParUsdUsdt === 'entrada'
+  const parCalcSalida = autoCambioUsdUsdt && form.cambioAutoParUsdUsdt === 'salida'
+  const parMontosManual = autoCambioUsdUsdt && form.cambioAutoParUsdUsdt === 'manual'
+
   useEffect(() => {
-    if (!autoCambioUsdUsdt || form.cambio_auto_fijo_salida) return
+    if (!autoCambioUsdUsdt || form.cambioAutoParUsdUsdt !== 'entrada') return
     if (form.tipo === 'venta') {
       const net = calcularUsdtNetoVentaUsd({
         montoUsd: form.monto_entrada,
@@ -86,7 +101,7 @@ export function NuevaOperacion() {
     setForm((f) => (f.monto_salida === next ? f : { ...f, monto_salida: next }))
   }, [
     autoCambioUsdUsdt,
-    form.cambio_auto_fijo_salida,
+    form.cambioAutoParUsdUsdt,
     form.monto_entrada,
     form.comision_pct,
     form.comision_fija,
@@ -97,7 +112,7 @@ export function NuevaOperacion() {
   ])
 
   useEffect(() => {
-    if (!autoCambioUsdUsdt || !form.cambio_auto_fijo_salida) return
+    if (!autoCambioUsdUsdt || form.cambioAutoParUsdUsdt !== 'salida') return
     if (form.tipo === 'venta') {
       const usd = calcularUsdEntradaDesdeUsdtNeto({
         montoUsdtNeto: form.monto_salida,
@@ -117,7 +132,7 @@ export function NuevaOperacion() {
     setForm((f) => (f.monto_entrada === next ? f : { ...f, monto_entrada: next }))
   }, [
     autoCambioUsdUsdt,
-    form.cambio_auto_fijo_salida,
+    form.cambioAutoParUsdUsdt,
     form.monto_salida,
     form.comision_pct,
     form.comision_fija,
@@ -158,7 +173,11 @@ export function NuevaOperacion() {
         }
         next.monto_entrada = ''
         next.monto_salida = ''
-        next.cambio_auto_fijo_salida = false
+        next.cambioAutoParUsdUsdt = 'entrada'
+        if (f.cambioAutoParUsdUsdt === 'manual') {
+          next.comision_pct = '5'
+          next.comision_fija = '0'
+        }
       }
       const autoPar =
         ((next.tipo === 'venta' &&
@@ -176,7 +195,7 @@ export function NuevaOperacion() {
         if (!autoPar) {
           next.monto_salida = ''
           next.monto_entrada = ''
-          next.cambio_auto_fijo_salida = false
+          next.cambioAutoParUsdUsdt = 'entrada'
         }
       }
       return next
@@ -184,12 +203,24 @@ export function NuevaOperacion() {
   }
 
   function toggleCambioAutoFijoSalida() {
-    setForm((f) => ({
-      ...f,
-      cambio_auto_fijo_salida: !f.cambio_auto_fijo_salida,
-      monto_entrada: '',
-      monto_salida: '',
-    }))
+    setForm((f) => {
+      const i = CICLOS_CAMBIO_AUTO.indexOf(f.cambioAutoParUsdUsdt)
+      const nextMode = CICLOS_CAMBIO_AUTO[(i < 0 ? 0 : i + 1) % CICLOS_CAMBIO_AUTO.length]
+      const next = {
+        ...f,
+        cambioAutoParUsdUsdt: nextMode,
+        monto_entrada: '',
+        monto_salida: '',
+      }
+      if (nextMode === 'manual') {
+        next.comision_pct = ''
+        next.comision_fija = ''
+      } else if (f.cambioAutoParUsdUsdt === 'manual') {
+        next.comision_pct = f.comision_pct === '' ? '5' : f.comision_pct
+        next.comision_fija = f.comision_fija === '' ? '0' : f.comision_fija
+      }
+      return next
+    })
   }
 
   async function onSubmit(e) {
@@ -218,8 +249,8 @@ export function NuevaOperacion() {
           form.moneda_entrada === 'USDT' &&
           form.moneda_salida === 'USD')) &&
       !(Number(form.comision_fija) > 0)
-    if (autoParForm) {
-      if (form.cambio_auto_fijo_salida) {
+    if (autoParForm && form.cambioAutoParUsdUsdt !== 'manual') {
+      if (form.cambioAutoParUsdUsdt === 'salida') {
         if (!Number.isFinite(pct) || pct < 0) {
           setError('El % de comisión no es válido.')
           return
@@ -233,6 +264,7 @@ export function NuevaOperacion() {
     }
     setSaving(true)
     try {
+      const esManualPar = form.cambioAutoParUsdUsdt === 'manual'
       await crearOperacion({
         cliente_id: form.cliente_id,
         modo_operacion: form.modo_operacion,
@@ -243,11 +275,12 @@ export function NuevaOperacion() {
         monto_entrada: mIn,
         monto_salida: mOut,
         tasa: form.tasa === '' ? null : Number(form.tasa),
-        comision_pct: form.comision_pct === '' ? 0 : Number(form.comision_pct),
-        comision_fija: form.comision_fija === '' ? 0 : Number(form.comision_fija),
+        comision_pct: esManualPar ? 0 : form.comision_pct === '' ? 0 : Number(form.comision_pct),
+        comision_fija: esManualPar ? 0 : form.comision_fija === '' ? 0 : Number(form.comision_fija),
         estado: form.estado,
         observacion: form.observacion,
-        cambio_auto_fijo_salida: form.cambio_auto_fijo_salida,
+        cambio_auto_fijo_salida: form.cambioAutoParUsdUsdt === 'salida',
+        par_montos_manual: esManualPar,
       })
       setForm({ ...defaultForm })
       bumpDashboard()
@@ -344,17 +377,30 @@ export function NuevaOperacion() {
 
           <div>
             <label className={labelClass}>Tipo</label>
-            <select
-              className={inputClass}
-              value={form.tipo}
-              onChange={(e) => updateField('tipo', e.target.value)}
-            >
-              {TIPOS_OPERACION.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
+            <div className="grid grid-cols-2 gap-2 rounded-2xl border border-zinc-800 bg-zinc-950 p-1">
+              <button
+                type="button"
+                onClick={() => updateField('tipo', 'venta')}
+                className={`rounded-xl py-2.5 text-sm font-semibold capitalize transition ${
+                  form.tipo === 'venta'
+                    ? 'bg-emerald-600 text-white shadow'
+                    : 'text-zinc-400 hover:text-zinc-200'
+                }`}
+              >
+                Venta
+              </button>
+              <button
+                type="button"
+                onClick={() => updateField('tipo', 'compra')}
+                className={`rounded-xl py-2.5 text-sm font-semibold capitalize transition ${
+                  form.tipo === 'compra'
+                    ? 'bg-emerald-600 text-white shadow'
+                    : 'text-zinc-400 hover:text-zinc-200'
+                }`}
+              >
+                Compra
+              </button>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -393,20 +439,21 @@ export function NuevaOperacion() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={labelClass}>
-                Monto entrada{' '}
-                {autoCambioUsdUsdt && form.cambio_auto_fijo_salida ? '(calculado)' : ''}
+                Monto entrada {parCalcSalida ? '(calculado)' : ''}
               </label>
               <input
-                className={`${inputClass} ${autoCambioUsdUsdt && form.cambio_auto_fijo_salida ? 'cursor-not-allowed opacity-90' : ''}`}
+                className={`${inputClass} ${parCalcSalida ? 'cursor-not-allowed opacity-90' : ''}`}
                 type="number"
+                inputMode="decimal"
+                enterKeyHint="done"
                 min="0"
                 step="any"
                 value={form.monto_entrada}
                 onChange={(e) => updateField('monto_entrada', e.target.value)}
                 placeholder="0"
-                readOnly={autoCambioUsdUsdt && form.cambio_auto_fijo_salida}
+                readOnly={parCalcSalida}
                 title={
-                  autoCambioUsdUsdt && form.cambio_auto_fijo_salida
+                  parCalcSalida
                     ? `Se calcula desde ${fijoAutoSalidaLabel} (salida) y % de comisión.`
                     : undefined
                 }
@@ -414,25 +461,33 @@ export function NuevaOperacion() {
             </div>
             <div>
               <label className={labelClass}>
-                Monto salida {autoCambioUsdUsdt && !form.cambio_auto_fijo_salida ? '(calculado)' : ''}
+                Monto salida {parCalcEntrada ? '(calculado)' : ''}
               </label>
               <input
-                className={`${inputClass} ${autoCambioUsdUsdt && !form.cambio_auto_fijo_salida ? 'cursor-not-allowed opacity-90' : ''}`}
+                className={`${inputClass} ${parCalcEntrada ? 'cursor-not-allowed opacity-90' : ''}`}
                 type="number"
+                inputMode="decimal"
+                enterKeyHint="done"
                 min="0"
                 step="any"
                 value={form.monto_salida}
                 onChange={(e) => updateField('monto_salida', e.target.value)}
                 placeholder="0"
-                readOnly={autoCambioUsdUsdt && !form.cambio_auto_fijo_salida}
+                readOnly={parCalcEntrada}
                 title={
-                  autoCambioUsdUsdt && !form.cambio_auto_fijo_salida
+                  parCalcEntrada
                     ? `Se calcula desde ${fijoAutoEntradaLabel} de entrada y % de comisión.`
                     : undefined
                 }
               />
             </div>
           </div>
+          {parMontosManual ? (
+            <p className="text-xs text-zinc-500">
+              Modo manual: ambos montos a tu criterio. Comisión explícita desactivada; la ganancia se infiere
+              del spread (USD) usando la tasa USDT por USD.
+            </p>
+          ) : null}
 
           {((form.tipo === 'venta' &&
             form.moneda_entrada === 'USD' &&
@@ -451,25 +506,33 @@ export function NuevaOperacion() {
             <div>
               <label className={labelClass}>Comisión %</label>
               <input
-                className={inputClass}
+                className={`${inputClass} ${parMontosManual ? 'cursor-not-allowed opacity-50' : ''}`}
                 type="number"
+                inputMode="decimal"
+                enterKeyHint="done"
                 min="0"
                 step="any"
-                value={form.comision_pct}
+                value={parMontosManual ? '' : form.comision_pct}
                 onChange={(e) => updateField('comision_pct', e.target.value)}
                 placeholder="0"
+                disabled={parMontosManual}
+                readOnly={parMontosManual}
               />
             </div>
             <div>
               <label className={labelClass}>Comisión fija</label>
               <input
-                className={inputClass}
+                className={`${inputClass} ${parMontosManual ? 'cursor-not-allowed opacity-50' : ''}`}
                 type="number"
+                inputMode="decimal"
+                enterKeyHint="done"
                 min="0"
                 step="any"
-                value={form.comision_fija}
+                value={parMontosManual ? '' : form.comision_fija}
                 onChange={(e) => updateField('comision_fija', e.target.value)}
                 placeholder="0"
+                disabled={parMontosManual}
+                readOnly={parMontosManual}
               />
             </div>
           </div>
@@ -484,8 +547,9 @@ export function NuevaOperacion() {
               <button
                 key={shortcut.label}
                 type="button"
+                disabled={parMontosManual}
                 onClick={() => updateField('comision_pct', shortcut.value)}
-                className="rounded-2xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-300 hover:border-zinc-600"
+                className="rounded-2xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-300 hover:border-zinc-600 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {shortcut.label}
               </button>
@@ -496,17 +560,21 @@ export function NuevaOperacion() {
               onClick={toggleCambioAutoFijoSalida}
               title={
                 autoCambioUsdUsdt
-                  ? form.cambio_auto_fijo_salida
-                    ? `Pasas a fijar ${fijoAutoEntradaLabel} y calcular ${fijoAutoSalidaLabel}`
-                    : form.tipo === 'venta'
-                      ? `Fijas ${fijoAutoSalidaLabel} neto y se calcula el ${fijoAutoEntradaLabel} a cobrar (comisión % sobre nominal ${fijoAutoEntradaLabel} aparte)`
-                      : `Fijas ${fijoAutoSalidaLabel} neto y se calcula el ${fijoAutoEntradaLabel} a recibir (comisión % sobre nominal USDT aparte)`
+                  ? form.cambioAutoParUsdUsdt === 'entrada'
+                    ? `Siguiente: fijas ${fijoAutoSalidaLabel} neto y se calcula ${fijoAutoEntradaLabel} (comisión % aparte).`
+                    : form.cambioAutoParUsdUsdt === 'salida'
+                      ? `Siguiente: montos manuales (entrada y salida a tu criterio).`
+                      : `Siguiente: calculas salida desde ${fijoAutoEntradaLabel} de entrada.`
                   : 'Solo en venta USD → USDT o compra USDT → USD sin comisión fija'
               }
               className="rounded-2xl border border-sky-600/50 bg-sky-500/10 px-3 py-2 text-sm font-medium text-sky-300 hover:bg-sky-500/20 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              ⇄ Fijo:{' '}
-              {form.cambio_auto_fijo_salida ? fijoAutoSalidaLabel : fijoAutoEntradaLabel}
+              ⇄ Calcular:{' '}
+              {form.cambioAutoParUsdUsdt === 'entrada'
+                ? `desde ${fijoAutoEntradaLabel}`
+                : form.cambioAutoParUsdUsdt === 'salida'
+                  ? `desde ${fijoAutoSalidaLabel}`
+                  : 'manual'}
             </button>
           </div>
 
@@ -569,9 +637,13 @@ export function NuevaOperacion() {
                 </div>
               </div>
               <div className="col-span-2">
-                <div className="text-zinc-500">Comisión neta (sobre el lado principal del tipo)</div>
+                <div className="text-zinc-500">
+                  {parMontosManual
+                    ? 'Comisión explícita (modo manual)'
+                    : 'Comisión neta (sobre el lado principal del tipo)'}
+                </div>
                 <div className="mt-1 font-semibold text-zinc-200">
-                  {formatNumber(preview.comisionNeta)}
+                  {parMontosManual ? '—' : formatNumber(preview.comisionNeta)}
                 </div>
               </div>
               {!esIntermediacion ? (

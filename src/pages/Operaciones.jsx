@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { fetchOperaciones } from '../features/operaciones/api.js'
 import { Card } from '../components/Card'
-import { formatMoney, formatDate } from '../utils/format'
+import { formatMoney, formatDateTime } from '../utils/format'
 import { ROUTES, TIPOS_OPERACION, ESTADOS_OPERACION } from '../utils/constants'
 import { useAppStore } from '../store/useAppStore'
 
@@ -123,7 +123,7 @@ export function Operaciones() {
                         </span>
                       ) : null}
                     </span>
-                    <span className="text-xs text-zinc-500">{formatDate(r.created_at)}</span>
+                    <span className="text-xs text-zinc-500">{formatDateTime(r.created_at)}</span>
                   </div>
                   <div className="text-xs text-zinc-500">Cliente: {nombre}</div>
                   <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-zinc-400">

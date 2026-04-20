@@ -162,6 +162,7 @@ export async function crearOperacion(data) {
       monto_salida: montoOut,
       cambio_auto_fijo_salida: !!data.cambio_auto_fijo_salida,
       tasa: data.tasa,
+      parMontosManual: Boolean(data.par_montos_manual),
     })
     costoReal = calc.costoReal
     ingresoReal = calc.ingresoReal

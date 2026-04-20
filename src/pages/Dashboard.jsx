@@ -40,12 +40,20 @@ export function Dashboard() {
       <header className="space-y-1">
         <div className="flex items-start justify-between gap-2">
           <h1 className="text-2xl font-semibold text-white">CashFlow USDT</h1>
-          <Link
-            className="text-xs text-emerald-400 underline-offset-2 hover:underline"
-            to={ROUTES.operaciones}
-          >
-            Operaciones
-          </Link>
+          <div className="flex shrink-0 flex-col items-end gap-1 sm:flex-row sm:items-center sm:gap-3">
+            <Link
+              className="text-xs text-emerald-400 underline-offset-2 hover:underline"
+              to={ROUTES.historial}
+            >
+              Historial
+            </Link>
+            <Link
+              className="text-xs text-zinc-400 underline-offset-2 hover:underline"
+              to={ROUTES.operaciones}
+            >
+              Operaciones
+            </Link>
+          </div>
         </div>
         <p className="text-sm text-zinc-500">
           Ganancia, caja estimada por movimientos, por cobrar y pendientes
