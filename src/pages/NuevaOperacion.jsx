@@ -383,8 +383,8 @@ export function NuevaOperacion() {
                 onClick={() => updateField('tipo', 'venta')}
                 className={`rounded-xl py-2.5 text-sm font-semibold capitalize transition ${
                   form.tipo === 'venta'
-                    ? 'bg-emerald-600 text-white shadow'
-                    : 'text-zinc-400 hover:text-zinc-200'
+                    ? 'bg-orange-600 text-white shadow'
+                    : 'border border-transparent bg-zinc-950 text-zinc-400 hover:text-zinc-200'
                 }`}
               >
                 Venta
@@ -395,7 +395,7 @@ export function NuevaOperacion() {
                 className={`rounded-xl py-2.5 text-sm font-semibold capitalize transition ${
                   form.tipo === 'compra'
                     ? 'bg-emerald-600 text-white shadow'
-                    : 'text-zinc-400 hover:text-zinc-200'
+                    : 'border border-transparent bg-zinc-950 text-zinc-400 hover:text-zinc-200'
                 }`}
               >
                 Compra

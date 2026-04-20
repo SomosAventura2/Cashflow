@@ -3,7 +3,6 @@ export const ROUTES = {
   login: '/login',
   operar: '/operar',
   operaciones: '/operaciones',
-  historial: '/historial',
   clientes: '/clientes',
   deudas: '/deudas',
   caja: '/caja',

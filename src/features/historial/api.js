@@ -1,47 +1,81 @@
 import { supabase } from '../../lib/supabase.js'
+import { normalizeMoneda, deltaMontoMovimientoCaja } from '../../lib/cajaBalance.js'
+
+const PAGE = 1000
+
+async function fetchAllRowsAscending(table, select) {
+  const all = []
+  let from = 0
+  for (;;) {
+    const { data, error } = await supabase
+      .from(table)
+      .select(select)
+      .order('created_at', { ascending: true })
+      .range(from, from + PAGE - 1)
+    if (error) throw error
+    if (!data?.length) break
+    all.push(...data)
+    if (data.length < PAGE) break
+    from += PAGE
+  }
+  return all
+}
+
+function cmpHistorialAsc(a, b) {
+  const ta = new Date(a.created_at).getTime()
+  const tb = new Date(b.created_at).getTime()
+  if (ta !== tb) return ta - tb
+  const kind = (x) => (x.tipoLinea === 'caja' ? 0 : 1)
+  const k = kind(a) - kind(b)
+  if (k !== 0) return k
+  return String(a.id).localeCompare(String(b.id))
+}
 
 /**
- * Operaciones y movimientos de caja para historial unificado (orden cronológico descendente).
+ * Operaciones + movimientos de caja, orden cronológico descendente (más reciente arriba).
+ * Cada línea incluye `saldoUsd` y `saldoUsdt`: saldo de caja **después** de aplicar ese evento
+ * (solo movimientos de caja cambian el saldo; las operaciones muestran el saldo vigente en ese instante).
  */
-export async function fetchHistorialUnificado({
-  limitOperaciones = 200,
-  limitCaja = 250,
-} = {}) {
-  const [opsRes, cajaRes] = await Promise.all([
-    supabase
-      .from('operaciones')
-      .select('*, clientes(nombre, alias, telefono)')
-      .order('created_at', { ascending: false })
-      .limit(limitOperaciones),
-    supabase
-      .from('movimientos_caja')
-      .select('*, operaciones(clientes(nombre, alias))')
-      .order('created_at', { ascending: false })
-      .limit(limitCaja),
+export async function fetchHistorialUnificado() {
+  const [opsRows, cajaRows] = await Promise.all([
+    fetchAllRowsAscending('operaciones', '*, clientes(nombre, alias, telefono)'),
+    fetchAllRowsAscending(
+      'movimientos_caja',
+      '*, operaciones(clientes(nombre, alias))',
+    ),
   ])
 
-  if (opsRes.error) throw opsRes.error
-  if (cajaRes.error) throw cajaRes.error
-
-  const operaciones = (opsRes.data ?? []).map((row) => ({
+  const operaciones = opsRows.map((row) => ({
     tipoLinea: 'operacion',
     id: row.id,
     created_at: row.created_at,
     payload: row,
   }))
 
-  const caja = (cajaRes.data ?? []).map((row) => ({
+  const caja = cajaRows.map((row) => ({
     tipoLinea: 'caja',
     id: row.id,
     created_at: row.created_at,
     payload: row,
   }))
 
-  const merged = [...operaciones, ...caja].sort((a, b) => {
-    const ta = new Date(a.created_at).getTime()
-    const tb = new Date(b.created_at).getTime()
-    return tb - ta
+  const mergedAsc = [...operaciones, ...caja].sort(cmpHistorialAsc)
+
+  const acc = { USD: 0, USDT: 0, VES: 0 }
+  const withSaldos = mergedAsc.map((line) => {
+    if (line.tipoLinea === 'caja') {
+      const m = line.payload
+      const k = normalizeMoneda(m.moneda)
+      const d = deltaMontoMovimientoCaja(m)
+      if (acc[k] === undefined) acc[k] = 0
+      acc[k] += d
+    }
+    return {
+      ...line,
+      saldoUsd: acc.USD ?? 0,
+      saldoUsdt: acc.USDT ?? 0,
+    }
   })
 
-  return merged
+  return withSaldos.reverse()
 }

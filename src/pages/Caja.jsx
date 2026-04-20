@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Card } from '../components/Card'
 import { CollapseCard } from '../components/CollapseCard.jsx'
+import { HistorialCajaList } from '../components/HistorialCajaList.jsx'
 import { Input } from '../components/Input'
-import { formatMoney, formatDateTime } from '../utils/format'
 import { MONEDAS_CAMBIO } from '../utils/constants'
-import { fetchMovimientosCaja, registrarMovimientoManual } from '../features/caja/api.js'
+import { registrarMovimientoManual } from '../features/caja/api.js'
 import { useAppStore } from '../store/useAppStore'
 
 const inputClass =
@@ -19,30 +19,9 @@ const emptyManual = {
 
 export function Caja() {
   const bumpDashboard = useAppStore((s) => s.bumpDashboard)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [rows, setRows] = useState([])
   const [manual, setManual] = useState(emptyManual)
   const [saving, setSaving] = useState(false)
   const [manualError, setManualError] = useState(null)
-
-  const load = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const data = await fetchMovimientosCaja({ limit: 60 })
-      setRows(data)
-    } catch (e) {
-      setError(e?.message ?? String(e))
-      setRows([])
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    load()
-  }, [load])
 
   function updateManual(field, value) {
     setManual((m) => ({ ...m, [field]: value }))
@@ -61,7 +40,6 @@ export function Caja() {
       })
       setManual({ ...emptyManual })
       bumpDashboard()
-      await load()
     } catch (err) {
       setManualError(err?.message ?? String(err))
     } finally {
@@ -74,7 +52,8 @@ export function Caja() {
       <header>
         <h1 className="text-2xl font-semibold text-white">Caja</h1>
         <p className="text-sm text-zinc-500">
-          Movimientos por operación y ajustes manuales (capital, gastos, retiros).
+          Ajustes manuales y debajo el historial de operaciones y movimientos de caja con saldos USD/USDT
+          tras cada evento.
         </p>
       </header>
 
@@ -141,52 +120,7 @@ export function Caja() {
         </form>
       </CollapseCard>
 
-      <Card title="Últimos movimientos">
-        {loading ? (
-          <p className="text-sm text-zinc-500">Cargando…</p>
-        ) : error ? (
-          <p className="text-sm text-amber-400">{error}</p>
-        ) : rows.length === 0 ? (
-          <p className="text-sm text-zinc-500">Sin movimientos aún.</p>
-        ) : (
-          <ul className="divide-y divide-zinc-800 text-sm">
-            {rows.map((m) => {
-              const esManual = m.operacion_id == null
-              const opCli = m.operaciones?.clientes
-              const nombreClienteOp = [opCli?.nombre, opCli?.alias].filter(Boolean).join(' · ')
-              const colorClass =
-                m.tipo === 'egreso'
-                  ? 'text-red-300'
-                  : m.tipo === 'ajuste'
-                    ? 'text-amber-300'
-                    : 'text-emerald-300'
-              return (
-                <li key={m.id} className="flex items-start justify-between gap-3 py-3">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                      <span className="capitalize text-zinc-300">{m.tipo}</span>
-                      <span className="text-zinc-500">{m.moneda}</span>
-                      <span className="text-[11px] text-zinc-600">{formatDateTime(m.created_at)}</span>
-                      {esManual ? (
-                        <span className="rounded-full border border-zinc-600 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-zinc-400">
-                          Manual
-                        </span>
-                      ) : null}
-                    </div>
-                    {m.nota ? <p className="mt-1 truncate text-xs text-zinc-600">{m.nota}</p> : null}
-                    {!esManual && nombreClienteOp ? (
-                      <p className="mt-0.5 truncate text-xs text-zinc-500">Cliente: {nombreClienteOp}</p>
-                    ) : null}
-                  </div>
-                  <span className={`shrink-0 font-medium ${colorClass}`}>
-                    {formatMoney(m.monto, m.moneda)}
-                  </span>
-                </li>
-              )
-            })}
-          </ul>
-        )}
-      </Card>
+      <HistorialCajaList cardTitle="Historial (caja y operaciones)" showRefresh />
     </div>
   )
 }
