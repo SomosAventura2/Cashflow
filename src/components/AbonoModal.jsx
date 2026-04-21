@@ -1,5 +1,12 @@
 import { formatNumber } from '../utils/format'
 
+function montoDesdeSaldo(saldo, fraccion) {
+  const s = Number(saldo)
+  if (!Number.isFinite(s) || s <= 0) return ''
+  const raw = fraccion === 1 ? s : s * 0.5
+  return String(Math.round(raw * 1e8) / 1e8)
+}
+
 export function AbonoModal({
   open,
   onClose,
@@ -84,6 +91,25 @@ export function AbonoModal({
           placeholder="0"
           disabled={saving}
         />
+
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            disabled={saving || !deuda || !(Number(deuda.saldo) > 0)}
+            onClick={() => setAmount(montoDesdeSaldo(deuda.saldo, 0.5))}
+            className="rounded-xl border border-zinc-800 bg-zinc-950 py-2 text-sm font-medium text-zinc-300 hover:border-zinc-600 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            50%
+          </button>
+          <button
+            type="button"
+            disabled={saving || !deuda || !(Number(deuda.saldo) > 0)}
+            onClick={() => setAmount(montoDesdeSaldo(deuda.saldo, 1))}
+            className="rounded-xl border border-zinc-800 bg-zinc-950 py-2 text-sm font-medium text-zinc-300 hover:border-zinc-600 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            100%
+          </button>
+        </div>
 
         <div className="mt-5 flex gap-2">
           <button
