@@ -8,7 +8,7 @@ export function calcularUsdtNetoVentaUsd({ montoUsd, comisionPct, tasa }) {
   const pct = Number(comisionPct) || 0
   const tasaNum = tasa === '' || tasa == null ? 1 : Number(tasa)
   const rate = Number.isFinite(tasaNum) && tasaNum > 0 ? tasaNum : 1
-  if (usd <= 0 || pct <= 0 || pct >= 100) return null
+  if (usd <= 0 || pct < 0 || pct >= 100) return null
   const brutoUsdt = usd * rate
   return (brutoUsdt * (100 - pct)) / 100
 }
@@ -38,7 +38,7 @@ export function calcularUsdNetoCompraUsdt({ montoUsdt, comisionPct, tasa }) {
   const pct = Number(comisionPct) || 0
   const tasaNum = tasa === '' || tasa == null ? 1 : Number(tasa)
   const rate = Number.isFinite(tasaNum) && tasaNum > 0 ? tasaNum : 1
-  if (usdt <= 0 || pct <= 0 || pct >= 100) return null
+  if (usdt <= 0 || pct < 0 || pct >= 100) return null
   const brutoUsd = usdt / rate
   return (brutoUsd * (100 - pct)) / 100
 }

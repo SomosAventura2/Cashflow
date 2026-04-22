@@ -263,9 +263,9 @@ export function NuevaOperacion() {
           setError('El % de comisión no es válido.')
           return
         }
-      } else if (!(pct > 0 && pct < 100)) {
+      } else if (!(pct >= 0 && pct < 100)) {
         setError(
-          'Para el cálculo automático del segundo monto usa un % de comisión entre 0 y 100 (excl.).',
+          'Para el cálculo automático del segundo monto usa un % de comisión entre 0 y 100 (100 excl.).',
         )
         return
       }
