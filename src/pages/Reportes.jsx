@@ -15,36 +15,48 @@ function GraficoVolumenUsd({ periodos }) {
   const serie = useMemo(() => [...periodos].reverse(), [periodos])
   const w = 340
   const h = 112
-  const padX = 10
-  const padY = 10
+  const padX = 12
+  const padY = 12
   if (serie.length === 0) {
     return <p className="text-sm text-zinc-500">Sin datos para graficar.</p>
   }
   const vals = serie.map((p) => Number(p.volumenUsd) || 0)
-  const maxV = Math.max(...vals, 1)
+  const minV = Math.min(...vals)
+  const maxV = Math.max(...vals)
+  const range = maxV - minV
+  const denom = range > 1e-9 ? range : Math.max(maxV, 1)
+  const base = range > 1e-9 ? minV : 0
   const n = serie.length
   const coords = vals.map((v, i) => {
     const x = n === 1 ? padX + (w - padX * 2) / 2 : padX + (i / (n - 1)) * (w - padX * 2)
-    const y = padY + (1 - v / maxV) * (h - padY * 2)
+    const norm = (v - base) / denom
+    const y = padY + (1 - norm) * (h - padY * 2)
     return { x, y }
   })
   const pts = coords.map((p) => `${p.x},${p.y}`).join(' ')
+  const sinVolumen = maxV <= 1e-9
   return (
-    <svg
-      viewBox={`0 0 ${w} ${h}`}
-      className="h-28 w-full text-sky-400"
-      preserveAspectRatio="none"
-      aria-hidden
-    >
-      <polyline
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        points={pts}
-      />
-    </svg>
+    <div className="space-y-1">
+      {sinVolumen ? (
+        <p className="text-xs text-zinc-500">Sin volumen USD/USDT en estos periodos.</p>
+      ) : null}
+      <svg
+        viewBox={`0 0 ${w} ${h}`}
+        className="h-28 w-full text-sky-400"
+        preserveAspectRatio="xMidYMid meet"
+        aria-hidden
+      >
+        <polyline
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          vectorEffect="non-scaling-stroke"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          points={pts}
+        />
+      </svg>
+    </div>
   )
 }
 
@@ -258,7 +270,7 @@ export function Reportes() {
             ) : (
               <>
                 <div className="mb-4 rounded-xl border border-zinc-800/80 bg-zinc-950/40 px-3 py-3">
-                  <div className={labelClass}>Volumen en USD por periodo</div>
+                  <div className={labelClass}>Volumen (USD / USDT) por periodo</div>
                   <GraficoVolumenUsd periodos={d.periodos} />
                 </div>
                 <div className="overflow-x-auto">

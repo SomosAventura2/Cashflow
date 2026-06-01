@@ -1,6 +1,9 @@
 import { supabase } from '../../lib/supabase.js'
 import { calcularOperacion, comisionNetaDesdeMontos } from '../../lib/calculations.js'
-import { upsertCuentaPorCobrarUnificada } from '../deudas/api.js'
+import {
+  upsertCuentaPorCobrarUnificada,
+  upsertCuentaPorPagarUnificada,
+} from '../deudas/api.js'
 
 function montoParaCalculo(data) {
   if (data.monto != null && !Number.isNaN(Number(data.monto))) {
@@ -267,18 +270,13 @@ export async function crearOperacion(data) {
       })
     }
     if (tipo === 'compra' && montoOut > 0) {
-      const { error: eCxp } = await supabase.from('cuentas_por_pagar').insert([
-        {
-          cliente_id: data.cliente_id,
-          operacion_id: opId,
-          moneda: data.moneda_salida,
-          monto_total: montoOut,
-          monto_pagado: 0,
-          saldo: montoOut,
-          estado,
-        },
-      ])
-      if (eCxp) throw eCxp
+      await upsertCuentaPorPagarUnificada({
+        cliente_id: data.cliente_id,
+        moneda: data.moneda_salida,
+        montoAdicional: montoOut,
+        operacion_id: opId,
+        estado,
+      })
     }
   }
 

@@ -102,11 +102,6 @@ export async function fetchDashboard() {
       filasCxc.map((r) => r.cliente_id).filter((id) => id != null && String(id).trim() !== ''),
     ).size
 
-    const sumaOpsYClientesCxc =
-      cobrarRes.error || opsPend.error
-        ? null
-        : (opsPendientes ?? 0) + clientesConSaldoPorCobrar
-
     const totalPorPagar = pagarRes.error
       ? null
       : (pagarRes.data ?? []).reduce((a, r) => a + Number(r.saldo ?? 0), 0)
@@ -135,7 +130,6 @@ export async function fetchDashboard() {
         errorBalanceBruto,
         opsPendientes,
         clientesConSaldoPorCobrar,
-        sumaOpsYClientesCxc,
         errorOpsPend: opsPend.error?.message ?? null,
       },
     }

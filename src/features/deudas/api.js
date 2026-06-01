@@ -7,12 +7,13 @@ function num(v) {
 }
 
 /**
- * Une varias filas abiertas de cuentas_por_cobrar del mismo cliente y moneda en la más antigua.
+ * Une varias filas abiertas del mismo cliente y moneda en la más antigua.
+ * @param {'cuentas_por_cobrar'|'cuentas_por_pagar'} table
  * @param {object[]} rows mismo cliente_id y moneda, estado ≠ cerrada
  * @param {number} montoAdicional suma al total adeudado (0 solo fusiona duplicados)
  * @param {{ operacion_id?: string|null }} [opts]
  */
-async function mergeCuentasPorCobrarGrupo(rows, montoAdicional, opts = {}) {
+async function mergeCuentasDeudaGrupo(table, rows, montoAdicional, opts = {}) {
   if (!rows?.length) return
   const sorted = [...rows].sort((a, b) => {
     const ta = new Date(a.created_at).getTime()
@@ -42,7 +43,7 @@ async function mergeCuentasPorCobrarGrupo(rows, montoAdicional, opts = {}) {
   }
 
   const { error: eUp } = await supabase
-    .from('cuentas_por_cobrar')
+    .from(table)
     .update({
       monto_total: newMontoTotal,
       monto_pagado: newMontoPagado,
@@ -55,7 +56,7 @@ async function mergeCuentasPorCobrarGrupo(rows, montoAdicional, opts = {}) {
 
   if (others.length > 0) {
     const ids = others.map((r) => r.id)
-    const { error: eDel } = await supabase.from('cuentas_por_cobrar').delete().in('id', ids)
+    const { error: eDel } = await supabase.from(table).delete().in('id', ids)
     if (eDel) throw eDel
   }
 }
@@ -112,10 +113,65 @@ export async function upsertCuentaPorCobrarUnificada({
     return
   }
 
-  await mergeCuentasPorCobrarGrupo(rows, add, { operacion_id })
+  await mergeCuentasDeudaGrupo('cuentas_por_cobrar', rows, add, { operacion_id })
 }
 
-function tieneDuplicadosPorClienteMonedaCxc(rows) {
+/**
+ * Inserta o fusiona una cuenta por pagar: una sola fila abierta por cliente y moneda.
+ * @param {{ cliente_id: string, moneda: string, montoAdicional: number, operacion_id?: string|null, estado?: string }} p
+ */
+export async function upsertCuentaPorPagarUnificada({
+  cliente_id,
+  moneda,
+  montoAdicional,
+  operacion_id = null,
+  estado = 'pendiente',
+}) {
+  if (!cliente_id) throw new Error('Falta cliente.')
+  const mon = String(moneda ?? '')
+    .trim()
+    .toUpperCase()
+  if (mon !== 'USD' && mon !== 'USDT') {
+    throw new Error('La moneda debe ser USD o USDT.')
+  }
+  const add = num(montoAdicional)
+  if (!(add > 0)) {
+    throw new Error('El monto debe ser mayor que 0.')
+  }
+
+  const { data: existentes, error: eSel } = await supabase
+    .from('cuentas_por_pagar')
+    .select('*')
+    .eq('cliente_id', cliente_id)
+    .eq('moneda', mon)
+    .neq('estado', 'cerrada')
+    .order('created_at', { ascending: true })
+  if (eSel) throw eSel
+  const rows = existentes ?? []
+
+  const est = String(estado ?? 'pendiente').toLowerCase()
+  const estadoInsert = est === 'parcial' ? 'parcial' : 'pendiente'
+
+  if (rows.length === 0) {
+    const { error: eIns } = await supabase.from('cuentas_por_pagar').insert([
+      {
+        cliente_id,
+        moneda: mon,
+        monto_total: add,
+        monto_pagado: 0,
+        saldo: add,
+        estado: estadoInsert,
+        operacion_id: operacion_id ?? null,
+      },
+    ])
+    if (eIns) throw eIns
+    return
+  }
+
+  await mergeCuentasDeudaGrupo('cuentas_por_pagar', rows, add, { operacion_id })
+}
+
+function tieneDuplicadosPorClienteMoneda(rows) {
   const seen = new Set()
   for (const r of rows) {
     const k = `${r.cliente_id}::${r.moneda}`
@@ -125,8 +181,8 @@ function tieneDuplicadosPorClienteMonedaCxc(rows) {
   return false
 }
 
-async function consolidarDuplicadosCxcEnDb(estadoFilter) {
-  let cq = supabase.from('cuentas_por_cobrar').select('*').order('created_at', { ascending: true })
+async function consolidarDuplicadosEnDb(table, estadoFilter) {
+  let cq = supabase.from(table).select('*').order('created_at', { ascending: true })
   if (estadoFilter && estadoFilter !== 'todo') cq = cq.eq('estado', estadoFilter)
   else cq = cq.neq('estado', 'cerrada')
   const { data, error } = await cq
@@ -141,7 +197,7 @@ async function consolidarDuplicadosCxcEnDb(estadoFilter) {
   let merged = false
   for (const [, group] of byKey) {
     if (group.length > 1) {
-      await mergeCuentasPorCobrarGrupo(group, 0, { operacion_id: null })
+      await mergeCuentasDeudaGrupo(table, group, 0, { operacion_id: null })
       merged = true
     }
   }
@@ -170,9 +226,9 @@ export async function fetchDeudas(kind, { estado = 'todo', q = '' } = {}) {
 
   let rows = data ?? []
 
-  if (kind === 'cobrar' && rows.length > 0 && tieneDuplicadosPorClienteMonedaCxc(rows)) {
+  if (rows.length > 0 && tieneDuplicadosPorClienteMoneda(rows)) {
     try {
-      const did = await consolidarDuplicadosCxcEnDb(estado)
+      const did = await consolidarDuplicadosEnDb(table, estado)
       if (did) {
         let q2 = supabase
           .from(table)
@@ -307,17 +363,11 @@ export async function crearDeudaManual({ kind, cliente_id, monto_total, moneda }
     return
   }
 
-  const table = 'cuentas_por_pagar'
-  const { error } = await supabase.from(table).insert([
-    {
-      cliente_id,
-      monto_total: monto,
-      monto_pagado: 0,
-      saldo: monto,
-      estado: 'pendiente',
-      moneda: mon,
-      operacion_id: null,
-    },
-  ])
-  if (error) throw error
+  await upsertCuentaPorPagarUnificada({
+    cliente_id,
+    moneda: mon,
+    montoAdicional: monto,
+    operacion_id: null,
+    estado: 'pendiente',
+  })
 }

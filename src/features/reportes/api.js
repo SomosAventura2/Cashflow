@@ -71,7 +71,7 @@ async function fetchAllOperacionesReporte() {
     const { data, error } = await supabase
       .from('operaciones')
       .select(
-        'id, cliente_id, tipo, estado, modo_operacion, comision_moneda, ganancia, monto_entrada, monto_salida, created_at, clientes(id, nombre, alias)',
+        'id, cliente_id, tipo, estado, modo_operacion, comision_moneda, ganancia, monto_entrada, monto_salida, moneda_entrada, moneda_salida, created_at, clientes(id, nombre, alias)',
       )
       .order('created_at', { ascending: true })
       .range(from, from + PAGE - 1)
@@ -82,6 +82,23 @@ async function fetchAllOperacionesReporte() {
     from += PAGE
   }
   return all
+}
+
+/** Monto que cuenta para volumen nominal (USD y USDT 1:1). */
+function montoVolumenNominal(moneda, monto) {
+  const m = String(moneda ?? '')
+    .trim()
+    .toUpperCase()
+  if (m !== 'USD' && m !== 'USDT') return 0
+  const n = Number(monto)
+  return Number.isFinite(n) && n > 0 ? n : 0
+}
+
+/** Un solo monto por operación (evita duplicar el par USD↔USDT). */
+function volumenOperacionNominal(r) {
+  const vin = montoVolumenNominal(r.moneda_entrada, r.monto_entrada)
+  const vout = montoVolumenNominal(r.moneda_salida, r.monto_salida)
+  return Math.max(vin, vout)
 }
 
 function buildFromRows(rows, timeframe = REPORTE_PERIODO.semanal) {
@@ -132,10 +149,7 @@ function buildFromRows(rows, timeframe = REPORTE_PERIODO.semanal) {
       w.ganancia += g
       if (tipo === 'venta') w.ventas += 1
       else if (tipo === 'compra') w.compras += 1
-      const me = String(r.moneda_entrada ?? '').toUpperCase()
-      const ms = String(r.moneda_salida ?? '').toUpperCase()
-      if (me === 'USD') w.volumenUsd += Number(r.monto_entrada) || 0
-      if (ms === 'USD') w.volumenUsd += Number(r.monto_salida) || 0
+      w.volumenUsd += volumenOperacionNominal(r)
     }
 
     const cid = r.cliente_id

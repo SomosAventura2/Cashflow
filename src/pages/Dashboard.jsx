@@ -100,13 +100,9 @@ export function Dashboard() {
                   <span className="text-xl font-semibold tabular-nums leading-tight text-amber-300 sm:text-2xl">
                     {formatNumber(d?.totalPorCobrar ?? 0)}
                   </span>
-                  {d?.sumaOpsYClientesCxc == null ? (
-                    <span className="text-lg text-zinc-500">/ —</span>
-                  ) : (
-                    <span className="text-2xl font-semibold leading-tight text-white sm:text-3xl">
-                      / {d.sumaOpsYClientesCxc}
-                    </span>
-                  )}
+                  <span className="text-2xl font-semibold leading-tight text-white sm:text-3xl">
+                    / {d?.clientesConSaldoPorCobrar ?? 0}
+                  </span>
                 </div>
               )}
             </Card>
